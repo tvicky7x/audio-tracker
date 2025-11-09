@@ -1,11 +1,11 @@
-# 🎵 AudioTracker
+# 🎵 audio-tracker
 
-> A powerful, TypeScript-first audio player library with built-in Media Session API support for seamless playback control across browsers, lock screens, and media keys.
+> A lightweight headless JavaScript library to control and track web audio with extensible playback features.
 
 [![npm version](https://img.shields.io/npm/v/audio-tracker.svg?style=flat-square)](https://www.npmjs.com/package/audio-tracker)
 [![npm downloads](https://img.shields.io/npm/dm/audio-tracker.svg?style=flat-square)](https://www.npmjs.com/package/audio-tracker)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=flat-square)](https://opensource.org/licenses/ISC)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 
 ---
 
@@ -15,20 +15,11 @@
 - [Installation](#-installation)
 - [Quick Start](#-quick-start)
 - [API Documentation](#-api-documentation)
-  - [Constructor](#constructor)
-  - [Methods](#methods)
-  - [Callbacks](#callbacks)
-  - [Type Definitions](#type-definitions)
 - [Usage Examples](#-usage-examples)
-  - [Basic Usage](#basic-usage)
-  - [React Integration](#react-integration)
-  - [Vue Integration](#vue-integration)
-  - [Existing Audio Element](#using-existing-audio-element)
 - [Advanced Features](#-advanced-features)
 - [Browser Support](#-browser-support)
 - [Common Issues](#-common-issues)
 - [Contributing](#-contributing)
-- [Changelog](#-changelog)
 - [License](#-license)
 
 ---
@@ -43,8 +34,8 @@
 - ⚡ **Flexible Input** - Accept URL strings or existing HTMLAudioElement
 - 🪝 **Rich Event System** - 14+ callbacks for all audio events
 - 🎮 **Zero Dependencies** - Pure TypeScript, no external dependencies
-- 📦 **Lightweight** - < 10KB gzipped
-- ♿ **Accessible** - ARIA-compliant and keyboard-friendly
+- 📦 **Lightweight** - Minimal footprint, tree-shakeable
+- 🎧 **Headless** - No UI, just audio control logic
 
 ---
 
@@ -66,12 +57,6 @@ yarn add audio-tracker
 
 ```
 pnpm add audio-tracker
-```
-
-### CDN
-
-```
-<script src="https://unpkg.com/audio-tracker@latest/dist/index.js"></script>
 ```
 
 ---
@@ -686,13 +671,6 @@ tracker.init({
 });
 ```
 
-```
-<audio id="myAudio" src="/music.mp3"></audio>
-<script>
-  // AudioTracker will control this element
-</script>
-```
-
 ---
 
 ## 🎯 Advanced Features
@@ -760,24 +738,6 @@ tracker.init({
 });
 ```
 
-### Media Session with Multiple Artworks
-
-```
-const tracker = new AudioTracker('/audio.mp3', {
-  mediaSession: {
-    title: 'Amazing Song',
-    artist: 'Great Artist',
-    album: 'Best Album',
-    artwork: [
-      { src: '/artwork-96.png', sizes: '96x96', type: 'image/png' },
-      { src: '/artwork-128.png', sizes: '128x128', type: 'image/png' },
-      { src: '/artwork-256.png', sizes: '256x256', type: 'image/png' },
-      { src: '/artwork-512.png', sizes: '512x512', type: 'image/png' }
-    ]
-  }
-});
-```
-
 ---
 
 ## 🌐 Browser Support
@@ -811,15 +771,6 @@ const tracker = new AudioTracker('/audio.mp3', {
 | Android Browser | ✅ 73+                |
 
 > **Note:** On browsers without Media Session support, all core audio functionality works perfectly. You just won't have lock screen controls, media keys, or notification center integration.
-
-### Feature Detection
-
-AudioTracker automatically detects Media Session API support:
-
-```
-// Media Session features are automatically disabled on unsupported browsers
-// No action needed from you!
-```
 
 ---
 
@@ -868,30 +819,23 @@ mediaSession: {
 npm install typescript@latest
 ```
 
-### Issue: Seek not working on some audio files
-
-**Solution:** Audio file may not support seeking. Try using a different encoding or ensure the file is not streaming-only.
-
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here's how to get started:
+Contributions are welcome! Please follow these steps:
 
 ### Development Setup
 
 ```
 # Clone the repository
-git clone https://github.com/yourusername/audio-tracker.git
+git clone git@github.com:tvicky7x/audio-tracker.git
 cd audio-tracker
 
 # Install dependencies
 npm install
 
-# Run tests
-npm test
-
-# Build
+# Build the project
 npm run build
 ```
 
@@ -900,33 +844,25 @@ npm run build
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
 3. Make your changes
-4. Add tests for new features
-5. Ensure all tests pass: `npm test`
-6. Commit your changes: `git commit -m 'Add amazing feature'`
-7. Push to the branch: `git push origin feature/amazing-feature`
-8. Open a Pull Request
+4. Build and test: `npm run build`
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
 
 ### Code Style
 
 - Use TypeScript
-- Follow existing code style
+- Follow existing code patterns
 - Add JSDoc comments for public APIs
-- Write unit tests for new features
+- Keep the library headless (no UI dependencies)
 
 ---
 
-## 📝 Changelog
+## 📝 Repository
 
-### v1.0.0 (2025-11-09)
-
-- Initial release
-- Full TypeScript support
-- Media Session API integration
-- 14+ event callbacks
-- Complete playback controls
-- Cross-platform compatibility
-
-[View full changelog](CHANGELOG.md)
+- **GitHub:** [https://github.com/tvicky7x/audio-tracker](https://github.com/tvicky7x/audio-tracker)
+- **Issues:** [https://github.com/tvicky7x/audio-tracker/issues](https://github.com/tvicky7x/audio-tracker/issues)
+- **npm:** [https://www.npmjs.com/package/audio-tracker](https://www.npmjs.com/package/audio-tracker)
 
 ---
 
@@ -934,7 +870,7 @@ npm run build
 
 MIT License
 
-Copyright (c) 2025 [Your Name]
+Copyright (c) 2025 T Vicky
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -960,9 +896,9 @@ SOFTWARE.
 
 If you find this package helpful, please consider:
 
-- ⭐ Starring the repository
-- 🐛 Reporting bugs
-- 💡 Suggesting features
+- ⭐ Starring the repository on GitHub
+- 🐛 Reporting bugs and issues
+- 💡 Suggesting new features
 - 📖 Improving documentation
 - 🔀 Contributing code
 
@@ -970,19 +906,12 @@ If you find this package helpful, please consider:
 
 ## 🙏 Acknowledgments
 
-- Built with TypeScript
-- Powered by Web Audio API
-- Inspired by modern audio player needs
-- Thanks to all contributors
+- Built with TypeScript 5.9.3
+- Powered by Web Audio API and Media Session API
+- Inspired by the need for headless, extensible audio control
 
 ---
 
-## 📞 Contact
+**Made with ❤️ by T Vicky**
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/audio-tracker/issues)
-- **Email:** your.email@example.com
-- **Twitter:** [@yourusername](https://twitter.com/yourusername)
-
----
-
-**Made with ❤️ by [Your Name]**
+**Repository:** [github.com/tvicky7x/audio-tracker](https://github.com/tvicky7x/audio-tracker)

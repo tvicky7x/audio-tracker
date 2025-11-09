@@ -19,7 +19,7 @@
     "headless"
   ],
   "author": "T Vicky",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "devDependencies": {
     "typescript": "^5.9.3"

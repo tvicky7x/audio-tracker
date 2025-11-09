@@ -4,23 +4,35 @@
   "description": "A lightweight headless JavaScript library to control and track web audio with extensible playback features.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "repository": {
     "type": "git",
-    "url": "git@github-tvicky7x:tvicky7x/audio-tracker.git"
+    "url": "git+https://github.com/tvicky7x/audio-tracker.git"
   },
   "keywords": [
     "audio",
     "tracker",
     "web-audio",
     "typescript",
-    "headless"
+    "headless",
+    "media-session",
+    "audio-player"
   ],
   "author": "T Vicky",
   "license": "MIT",
-  "type": "module",
+  "bugs": {
+    "url": "https://github.com/tvicky7x/audio-tracker/issues"
+  },
+  "homepage": "https://github.com/tvicky7x/audio-tracker#readme",
   "devDependencies": {
     "typescript": "^5.9.3"
   }

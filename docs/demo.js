@@ -1,4 +1,4 @@
-const DEMO_AUDIO = "/demo/assets/phonk-demo.mp3";
+const DEMO_AUDIO = "assets/phonk-demo.mp3";
 
 // Check Media Session support
 const statusEl = document.getElementById("media-session-status");
@@ -22,12 +22,12 @@ if ("mediaSession" in navigator) {
     album: "Demo Album",
     artwork: [
       {
-        src: "/demo/assets/phonk-96.jpg",
+        src: "assets/phonk-96.jpg",
         sizes: "96x96",
         type: "image/jpeg",
       },
       {
-        src: "/demo/assets/phonk-256.jpg",
+        src: "assets/phonk-256.jpg",
         sizes: "256x256",
         type: "image/jpeg",
       },

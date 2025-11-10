@@ -1,963 +1,1120 @@
-# 🎵 audio-tracker
+# audio-tracker
 
-> A headless JavaScript library that gives you full control over web audio — playback, tracking, and Media Session integration made simple.
+A headless JavaScript library that gives you full control over web audio — playback, tracking, and Media Session integration made simple.
 
-[![npm version](https://img.shields.io/npm/v/audio-tracker.svg?style=flat-square)](https://www.npmjs.com/package/audio-tracker)
-[![npm downloads](https://img.shields.io/npm/dm/audio-tracker.svg?style=flat-square)](https://www.npmjs.com/package/audio-tracker)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
-
-**[🎮 Live Demo](https://tvicky7x.github.io/audio-tracker/)** | **[📖 Documentation](#-api-documentation)** | **[💾 Installation](#-installation)**
+[![npm version](https://img.shields.ioMIT](https://img.shields.io/badge/License-MIT-blueimg.shields.io/badge/TypeScript-Ready[Live Demo](https://tvicky7x.github.io/audio-tracker/)** - **[npm Package](https://www.npmjs.com/package/audio-tracker)** - **[Report Bug](https://github.com/tvicky7x/audio-tracker/issues)** - **[Request Feature](https://github.com/tvicky7x/audio-tracker/issues)\*\*
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [Features](#-features)
-- [Installation](#-installation)
-- [Quick Start](#-quick-start)
-- [API Documentation](#-api-documentation)
-- [Usage Examples](#-usage-examples)
-- [Advanced Features](#-advanced-features)
-- [Browser Support](#-browser-support)
-- [Common Issues](#-common-issues)
-- [Changelog](#-changelog)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [About](#about)
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+  - [Basic Setup](#basic-setup)
+  - [With Existing Audio Element](#with-existing-audio-element)
+  - [Media Session Integration](#media-session-integration)
+- [API Reference](#api-reference)
+  - [Constructor](#constructor)
+  - [Initialization Options](#initialization-options)
+  - [Event Callbacks](#event-callbacks)
+  - [Playback Control Methods](#playback-control-methods)
+  - [Volume Control Methods](#volume-control-methods)
+  - [State Query Methods](#state-query-methods)
+  - [Configuration Methods](#configuration-methods)
+  - [Utility Methods](#utility-methods)
+- [TypeScript Support](#typescript-support)
+- [Framework Integration](#framework-integration)
+  - [React Example](#react-example)
+  - [Vue Example](#vue-example)
+  - [Vanilla JavaScript](#vanilla-javascript)
+- [Media Session API](#media-session-api)
+- [Browser Compatibility](#browser-compatibility)
+- [Examples](#examples)
+- [Contributing](#contributing)
+- [License](#license)
+- [Author](#author)
+- [Support](#support)
 
 ---
 
-## ✨ Features
+## About
 
-- 🎯 **TypeScript First** - Full type definitions included, no @types needed
-- 🎵 **Complete Audio Control** - Play, pause, seek, volume, speed control
-- 🔄 **Media Session API** - Native lock screen and media key controls
-- 📱 **Cross-Platform** - Works on desktop and mobile browsers
-- 🎨 **Framework Agnostic** - Use with React, Vue, Angular, or vanilla JS
-- ⚡ **Flexible Input** - Accept URL strings or existing HTMLAudioElement
-- 🪝 **Rich Event System** - 15+ callbacks for all audio events
-- 🎮 **Zero Dependencies** - Pure TypeScript, no external dependencies
-- 📦 **Lightweight** - Minimal footprint, tree-shakeable
-- 🎧 **Headless** - No UI, just audio control logic
-- 🎛️ **Core Audio Attributes** - Configure preload, loop, muted, autoplay, crossOrigin, and volume
+`audio-tracker` is a framework-agnostic, headless audio library designed to simplify web audio playback with comprehensive event tracking and system-level media controls. Built with TypeScript, it provides a clean API for managing audio playback without imposing any UI constraints.
+
+### Why audio-tracker?
+
+- **Headless Architecture:** No UI dependencies—bring your own design
+- **Framework Agnostic:** Works seamlessly with React, Vue, Svelte, Angular, or Vanilla JS
+- **Media Session API:** Built-in support for lock screen controls, media keys, and OS-level integration
+- **Comprehensive Events:** 15+ callback hooks covering the entire playback lifecycle
+- **TypeScript First:** Fully typed with complete type definitions
+- **Lightweight:** Zero dependencies, minimal footprint
+- **Production Ready:** Includes proper cleanup and memory leak prevention
 
 ---
 
-## 📦 Installation
+## Features
 
-### npm
+- ✅ **Playback Control:** Play, pause, seek, forward, backward
+- ✅ **Volume Management:** Set volume (0-100), mute/unmute, toggle
+- ✅ **Playback Speed:** Adjust speed from 0.25x to 4.0x
+- ✅ **Progress Tracking:** Real-time time updates and buffering status
+- ✅ **Media Session API:** Lock screen controls, media keys, metadata display
+- ✅ **Event System:** Comprehensive callbacks for all audio events
+- ✅ **Time Formatting:** Built-in time formatter (seconds to MM:SS)
+- ✅ **State Queries:** Check playback state, volume, duration, and more
+- ✅ **Loop & Autoplay:** Configurable looping and autoplay behavior
+- ✅ **CORS Support:** Configurable cross-origin settings
+- ✅ **Error Handling:** Detailed error callbacks
+- ✅ **Memory Safe:** Proper cleanup with destroy method
 
-```
+---
+
+## Installation
+
+### NPM
+
+```bash
 npm install audio-tracker
 ```
 
-### yarn
+### Yarn
 
-```
+```bash
 yarn add audio-tracker
 ```
 
-### pnpm
+### PNPM
 
-```
+```bash
 pnpm add audio-tracker
 ```
 
+### CDN
+
+```html
+<script type="module">
+  import AudioTracker from "https://unpkg.com/audio-tracker@latest/dist/index.js";
+</script>
+```
+
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
-```
-import AudioTracker from 'audio-tracker';
+```javascript
+import AudioTracker from "audio-tracker";
 
-// Create tracker with audio URL and options
-const tracker = new AudioTracker('/path/to/audio.mp3', {
-  preload: 'metadata',
-  loop: false,
-  muted: false,
-  autoplay: false,
-  volume: 80,
+// Create tracker instance
+const tracker = new AudioTracker("path/to/audio.mp3", {
+  volume: 75,
+  preload: "auto",
   mediaSession: {
-    title: 'My Song',
-    artist: 'Artist Name',
-    album: 'Album Name',
-    artwork: [
-      { src: '/artwork-96.png', sizes: '96x96', type: 'image/png' },
-      { src: '/artwork-256.png', sizes: '256x256', type: 'image/png' }
-    ]
-  }
+    title: "Song Title",
+    artist: "Artist Name",
+    artwork: [{ src: "cover.jpg", sizes: "512x512" }],
+  },
 });
 
-// Initialize with callbacks
+// Initialize with event callbacks
 tracker.init({
-  onPlay: () => console.log('▶️ Playing'),
-  onPause: () => console.log('⏸️ Paused'),
-  onTimeUpdate: (time) => console.log(`⏱️ ${time}s`),
-  onDurationChange: (duration) => console.log(`📏 Duration: ${duration}s`),
-  onBufferChangePercentage: (percent) => console.log(`📊 Buffered: ${percent}%`)
+  onPlay: () => console.log("Playback started"),
+  onPause: () => console.log("Playback paused"),
+  onTimeUpdate: (currentTime) => {
+    const progress = (currentTime / tracker.getDuration()) * 100;
+    console.log(`Progress: ${progress.toFixed(2)}%`);
+  },
+  onError: (error) => console.error("Playback error:", error),
 });
 
 // Control playback
-tracker.play();
+await tracker.play();
 tracker.pause();
-tracker.seekTo(30); // Seek to 30 seconds
-tracker.setVolume(80); // 80% volume
-tracker.setPlaybackRate(1.5); // 1.5x speed
-tracker.setLoop(true); // Enable looping
+tracker.seekTo(30); // Jump to 30 seconds
+
+// Cleanup when done
+tracker.destroy();
 ```
 
 ---
 
-## 📚 API Documentation
+## Usage
+
+### Basic Setup
+
+```javascript
+import AudioTracker from "audio-tracker";
+
+const tracker = new AudioTracker("audio.mp3", {
+  volume: 50,
+  preload: "metadata",
+  loop: false,
+  autoplay: false,
+});
+
+tracker.init({
+  onDurationChange: (duration) => {
+    console.log(`Total duration: ${tracker.formatTime(duration)}`);
+  },
+  onTimeUpdate: (time) => {
+    console.log(`Current time: ${tracker.formatTime(time)}`);
+  },
+});
+
+// Start playback
+await tracker.play();
+```
+
+### With Existing Audio Element
+
+```javascript
+const audioElement = document.querySelector("audio");
+const tracker = new AudioTracker(audioElement);
+
+tracker.init({
+  onPlay: () => console.log("Playing"),
+  onPause: () => console.log("Paused"),
+});
+```
+
+### Media Session Integration
+
+Enable system-level media controls with artwork and metadata:
+
+```javascript
+const tracker = new AudioTracker("audio.mp3", {
+  mediaSession: {
+    title: "Bohemian Rhapsody",
+    artist: "Queen",
+    album: "A Night at the Opera",
+    artwork: [
+      { src: "cover-96.png", sizes: "96x96", type: "image/png" },
+      { src: "cover-128.png", sizes: "128x128", type: "image/png" },
+      { src: "cover-256.png", sizes: "256x256", type: "image/png" },
+      { src: "cover-512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
+});
+
+tracker.init({
+  onPlay: () => console.log("Media Session activated"),
+});
+
+await tracker.play();
+```
+
+This enables:
+
+- Lock screen media controls
+- Media key support (keyboard play/pause/seek)
+- Notification center integration
+- OS-level metadata display
+
+---
+
+## API Reference
 
 ### Constructor
 
-```
-new AudioTracker(
-  audioSource: string | HTMLAudioElement,
-  options?: AudioTrackerOptions
-)
-```
+#### `new AudioTracker(audioSource, options?)`
 
-#### Parameters
+Creates a new AudioTracker instance.
+
+**Parameters:**
 
 | Parameter     | Type                         | Description                              |
 | ------------- | ---------------------------- | ---------------------------------------- |
 | `audioSource` | `string \| HTMLAudioElement` | Audio file URL or existing audio element |
 | `options`     | `AudioTrackerOptions`        | Configuration options (optional)         |
 
-#### Options Interface
+**Example:**
 
-```
-interface AudioTrackerOptions {
-  preload?: 'none' | 'metadata' | 'auto';
-  loop?: boolean;
-  muted?: boolean;
-  autoplay?: boolean;
-  crossOrigin?: 'anonymous' | 'use-credentials';
-  volume?: number; // 0-100
-  mediaSession?: {
-    title?: string;
-    artist?: string;
-    album?: string;
-    artwork?: Array<{
-      src: string;
-      sizes: string;
-      type: string;
-    }>;
-  };
-}
+```javascript
+// With URL
+const tracker = new AudioTracker("audio.mp3");
+
+// With audio element
+const audio = document.querySelector("audio");
+const tracker = new AudioTracker(audio);
 ```
 
 ---
 
-### Methods
+### Initialization Options
 
-#### 🎮 Initialization
+#### `AudioTrackerOptions`
 
-##### `init(callbacks: AudioTrackerCallbacks): void`
+| Option         | Type                             | Default      | Description                                       |
+| -------------- | -------------------------------- | ------------ | ------------------------------------------------- |
+| `preload`      | `"none" \| "metadata" \| "auto"` | `"metadata"` | Browser preload strategy                          |
+| `loop`         | `boolean`                        | `false`      | Enable audio looping                              |
+| `muted`        | `boolean`                        | `false`      | Mute on initialization                            |
+| `autoplay`     | `boolean`                        | `false`      | Autoplay (subject to browser policies)            |
+| `crossOrigin`  | `string`                         | `undefined`  | CORS policy: `"anonymous"` or `"use-credentials"` |
+| `volume`       | `number`                         | `100`        | Initial volume (0-100)                            |
+| `mediaSession` | `MediaSessionMetadata`           | `undefined`  | Media Session API metadata                        |
 
-Initialize the tracker with event callbacks.
+#### `MediaSessionMetadata`
 
+| Property  | Type                    | Description             |
+| --------- | ----------------------- | ----------------------- |
+| `title`   | `string`                | Track title             |
+| `artist`  | `string`                | Artist name             |
+| `album`   | `string`                | Album name              |
+| `artwork` | `MediaSessionArtwork[]` | Array of artwork images |
+
+#### `MediaSessionArtwork`
+
+| Property | Type     | Description                          |
+| -------- | -------- | ------------------------------------ |
+| `src`    | `string` | Image URL                            |
+| `sizes`  | `string` | Image dimensions (e.g., `"512x512"`) |
+| `type`   | `string` | MIME type (e.g., `"image/png"`)      |
+
+---
+
+### Event Callbacks
+
+#### `tracker.init(callbacks)`
+
+Register event callbacks to respond to audio events.
+
+```typescript
+interface AudioTrackerCallbacks {
+  onPlay?: () => void;
+  onPause?: () => void;
+  onEnded?: () => void;
+  onTimeUpdate?: (currentTime: number) => void;
+  onDurationChange?: (duration: number) => void;
+  onLoadStart?: () => void;
+  onCanPlay?: () => void;
+  onWaiting?: () => void;
+  onPlaying?: () => void;
+  onStalled?: () => void;
+  onSeeking?: (seekTime: number) => void;
+  onBufferChange?: (bufferedTime: number) => void;
+  onBufferPercentageChange?: (percentage: number) => void;
+  onVolumeChange?: (data: VolumeChangeData) => void;
+  onRateChange?: (rate: number) => void;
+  onError?: (error: MediaError | null) => void;
+}
 ```
+
+**Callback Reference:**
+
+| Callback                   | Parameters                           | Description                                 |
+| -------------------------- | ------------------------------------ | ------------------------------------------- |
+| `onPlay`                   | None                                 | Fired when playback starts                  |
+| `onPause`                  | None                                 | Fired when playback pauses                  |
+| `onEnded`                  | None                                 | Fired when playback completes               |
+| `onTimeUpdate`             | `currentTime: number`                | Fired continuously during playback          |
+| `onDurationChange`         | `duration: number`                   | Fired when duration metadata loads          |
+| `onLoadStart`              | None                                 | Fired when browser starts loading           |
+| `onCanPlay`                | None                                 | Fired when enough data is buffered          |
+| `onWaiting`                | None                                 | Fired when playback stalls (buffering)      |
+| `onPlaying`                | None                                 | Fired when playback resumes after buffering |
+| `onStalled`                | None                                 | Fired on network stall                      |
+| `onSeeking`                | `seekTime: number`                   | Fired when seek operation starts            |
+| `onBufferChange`           | `bufferedTime: number`               | Fired when buffered time updates            |
+| `onBufferPercentageChange` | `percentage: number`                 | Fired when buffer percentage changes        |
+| `onVolumeChange`           | `{ volume: number, muted: boolean }` | Fired on volume/mute change                 |
+| `onRateChange`             | `rate: number`                       | Fired when playback rate changes            |
+| `onError`                  | `error: MediaError \| null`          | Fired on playback error                     |
+
+**Example:**
+
+```javascript
 tracker.init({
-  onPlay: () => console.log('Playing'),
-  onPause: () => console.log('Paused')
+  onTimeUpdate: (time) => {
+    document.querySelector(".current-time").textContent =
+      tracker.formatTime(time);
+  },
+  onDurationChange: (duration) => {
+    document.querySelector(".total-time").textContent =
+      tracker.formatTime(duration);
+  },
+  onBufferPercentageChange: (percent) => {
+    document.querySelector(".buffer-bar").style.width = `${percent}%`;
+  },
 });
 ```
 
 ---
 
-#### ▶️ Playback Controls
+### Playback Control Methods
 
-##### `play(): Promise<void>`
+#### `play(): Promise<void>`
 
-Start audio playback. Returns a Promise that resolves when playback starts.
+Starts or resumes audio playback.
 
-```
+```javascript
 await tracker.play();
 ```
 
-##### `pause(): void`
+#### `pause(): void`
 
-Pause audio playback.
+Pauses audio playback.
 
-```
+```javascript
 tracker.pause();
 ```
 
-##### `seekTo(time: number): void`
+#### `seekTo(time: number): void`
 
-Seek to specific time in seconds.
+Seeks to a specific time position.
 
-```
+**Parameters:**
+
+- `time` (number): Target time in seconds
+
+```javascript
 tracker.seekTo(45); // Jump to 45 seconds
 ```
 
-##### `isPlaying(): boolean`
+#### `forward(seconds?: number): void`
 
-Check if audio is currently playing.
+Skips forward by specified seconds.
 
+**Parameters:**
+
+- `seconds` (number): Seconds to skip (default: 10)
+
+```javascript
+tracker.forward(15); // Skip forward 15 seconds
 ```
-if (tracker.isPlaying()) {
-  console.log('Audio is playing');
-}
+
+#### `backward(seconds?: number): void`
+
+Skips backward by specified seconds.
+
+**Parameters:**
+
+- `seconds` (number): Seconds to rewind (default: 10)
+
+```javascript
+tracker.backward(5); // Rewind 5 seconds
 ```
 
 ---
 
-#### 🔊 Volume Controls
+### Volume Control Methods
 
-##### `setVolume(value: number): void`
+#### `setVolume(value: number): void`
 
-Set volume level (0-100).
+Sets the audio volume.
 
-```
-tracker.setVolume(75); // 75% volume
-```
+**Parameters:**
 
-##### `getVolume(): number`
+- `value` (number): Volume level (0-100)
 
-Get current volume (0-100).
-
-```
-const volume = tracker.getVolume();
+```javascript
+tracker.setVolume(75); // Set volume to 75%
 ```
 
-##### `toggleMute(): boolean`
+#### `getVolume(): number`
 
-Toggle mute state. Returns new mute state.
+Returns the current volume level (0-100).
 
+```javascript
+const currentVolume = tracker.getVolume(); // Returns: 75
 ```
+
+#### `toggleMute(): boolean`
+
+Toggles mute state.
+
+**Returns:** `true` if now muted, `false` if unmuted
+
+```javascript
 const isMuted = tracker.toggleMute();
 ```
 
-##### `setMuted(muted: boolean): void`
+#### `setMuted(muted: boolean): void`
 
-Set mute state directly.
+Sets mute state explicitly.
 
+**Parameters:**
+
+- `muted` (boolean): `true` to mute, `false` to unmute
+
+```javascript
+tracker.setMuted(true); // Mute audio
 ```
-tracker.setMuted(true); // Mute
-```
 
-##### `isMuted(): boolean`
+#### `isMuted(): boolean`
 
-Check if audio is muted.
+Checks if audio is currently muted.
 
-```
+```javascript
 if (tracker.isMuted()) {
-  console.log('Audio is muted');
+  console.log("Audio is muted");
 }
 ```
 
 ---
 
-#### ⚡ Playback Speed
+### State Query Methods
 
-##### `setPlaybackRate(rate: number): void`
+#### `isPlaying(): boolean`
 
-Set playback speed (0.5 - 2.0). Common values:
+Checks if audio is currently playing.
 
-- `0.5` - Half speed
-- `0.75` - 75% speed
-- `1.0` - Normal speed
-- `1.25` - 25% faster
-- `1.5` - 1.5x speed
-- `2.0` - Double speed
-
-```
-tracker.setPlaybackRate(1.5); // 1.5x speed
+```javascript
+const playing = tracker.isPlaying();
 ```
 
-##### `getPlaybackRate(): number`
+#### `getDuration(): number`
 
-Get current playback speed.
+Returns total audio duration in seconds.
 
+```javascript
+const duration = tracker.getDuration(); // Returns: 245.5
 ```
-const speed = tracker.getPlaybackRate();
+
+#### `getCurrentTime(): number`
+
+Returns current playback position in seconds.
+
+```javascript
+const currentTime = tracker.getCurrentTime(); // Returns: 32.8
+```
+
+#### `getTimeRemaining(): number`
+
+Returns remaining playback time in seconds.
+
+```javascript
+const remaining = tracker.getTimeRemaining(); // Returns: 212.7
+```
+
+#### `getReadyState(): number`
+
+Returns the ready state of the audio element.
+
+**Return values:**
+
+- `0`: HAVE_NOTHING
+- `1`: HAVE_METADATA
+- `2`: HAVE_CURRENT_DATA
+- `3`: HAVE_FUTURE_DATA
+- `4`: HAVE_ENOUGH_DATA
+
+```javascript
+const readyState = tracker.getReadyState();
+```
+
+#### `getNetworkState(): number`
+
+Returns the network loading state.
+
+**Return values:**
+
+- `0`: NETWORK_EMPTY
+- `1`: NETWORK_IDLE
+- `2`: NETWORK_LOADING
+- `3`: NETWORK_NO_SOURCE
+
+```javascript
+const networkState = tracker.getNetworkState();
 ```
 
 ---
 
-#### 🔁 Core Audio Attributes
+### Configuration Methods
 
-##### `setLoop(loop: boolean): void`
+#### `setPlaybackRate(rate: number): void`
 
-Enable or disable audio looping.
+Sets the playback speed.
 
+**Parameters:**
+
+- `rate` (number): Playback rate (0.25-4.0, where 1.0 is normal)
+
+```javascript
+tracker.setPlaybackRate(1.5); // 1.5x speed
+tracker.setPlaybackRate(0.75); // 0.75x speed
 ```
+
+#### `getPlaybackRate(): number`
+
+Returns the current playback rate.
+
+```javascript
+const rate = tracker.getPlaybackRate(); // Returns: 1.5
+```
+
+#### `setLoop(loop: boolean): void`
+
+Enables or disables audio looping.
+
+```javascript
 tracker.setLoop(true); // Enable loop
 ```
 
-##### `isLooping(): boolean`
+#### `isLooping(): boolean`
 
-Check if looping is enabled.
+Checks if looping is enabled.
 
-```
-if (tracker.isLooping()) {
-  console.log('Loop is on');
-}
+```javascript
+const looping = tracker.isLooping();
 ```
 
-##### `setAutoplay(autoplay: boolean): void`
+#### `setAutoplay(autoplay: boolean): void`
 
-Set autoplay attribute.
+Sets autoplay behavior.
 
-```
+```javascript
 tracker.setAutoplay(true);
 ```
 
-##### `getAutoplay(): boolean`
+#### `getAutoplay(): boolean`
 
-Get autoplay state.
+Returns autoplay state.
 
-```
+```javascript
 const autoplay = tracker.getAutoplay();
 ```
 
-##### `setCrossOrigin(crossOrigin: 'anonymous' | 'use-credentials' | ''): void`
+#### `setCrossOrigin(crossOrigin: string): void`
 
-Set cross-origin attribute for CORS.
+Sets CORS policy.
 
+**Parameters:**
+
+- `crossOrigin` (string): `"anonymous"` or `"use-credentials"`
+
+```javascript
+tracker.setCrossOrigin("anonymous");
 ```
-tracker.setCrossOrigin('anonymous');
-```
 
-##### `getCrossOrigin(): string | null`
+#### `getCrossOrigin(): string | null`
 
-Get cross-origin attribute.
+Returns current CORS policy.
 
-```
+```javascript
 const cors = tracker.getCrossOrigin();
 ```
 
-##### `setPreload(preload: 'none' | 'metadata' | 'auto'): void`
+#### `setPreload(preload: "none" | "metadata" | "auto"): void`
 
-Set preload strategy.
+Sets preload strategy.
 
+```javascript
+tracker.setPreload("auto");
 ```
-tracker.setPreload('auto');
-```
 
-##### `getPreload(): string`
+#### `getPreload(): string`
 
-Get preload strategy.
+Returns current preload strategy.
 
-```
+```javascript
 const preload = tracker.getPreload();
 ```
 
 ---
 
-#### 🛠️ Utilities
+### Utility Methods
 
-##### `calculateTime(seconds: number): string`
+#### `formatTime(seconds: number): string`
 
-Format seconds to MM:SS format.
+Formats seconds to MM:SS display format.
 
-```
-tracker.calculateTime(125); // Returns "2:05"
-tracker.calculateTime(3661); // Returns "61:01"
-```
+**Parameters:**
 
-##### `getDuration(): number`
+- `seconds` (number): Time in seconds
 
-Get total audio duration in seconds.
+**Returns:** Formatted time string
 
-```
-const duration = tracker.getDuration();
-```
-
-##### `getCurrentTime(): number`
-
-Get current playback position in seconds.
-
-```
-const currentTime = tracker.getCurrentTime();
+```javascript
+tracker.formatTime(125); // Returns: "2:05"
+tracker.formatTime(3661); // Returns: "61:01"
+tracker.formatTime(45); // Returns: "0:45"
 ```
 
-##### `getReadyState(): number`
+#### `destroy(): void`
 
-Get current ready state. Possible values:
+Cleans up event listeners and resources. **Always call this when the tracker is no longer needed to prevent memory leaks.**
 
-- `0` - HAVE_NOTHING
-- `1` - HAVE_METADATA
-- `2` - HAVE_CURRENT_DATA
-- `3` - HAVE_FUTURE_DATA
-- `4` - HAVE_ENOUGH_DATA
+```javascript
+// In React useEffect cleanup
+useEffect(() => {
+  const tracker = new AudioTracker("audio.mp3");
+  tracker.init({
+    /* callbacks */
+  });
 
-```
-const state = tracker.getReadyState();
-```
-
-##### `getNetworkState(): number`
-
-Get network loading state. Possible values:
-
-- `0` - NETWORK_EMPTY
-- `1` - NETWORK_IDLE
-- `2` - NETWORK_LOADING
-- `3` - NETWORK_NO_SOURCE
-
-```
-const networkState = tracker.getNetworkState();
-```
-
-##### `destroy(): void`
-
-Clean up and remove all event listeners. Call before removing the tracker.
-
-```
-tracker.destroy();
+  return () => {
+    tracker.destroy(); // Cleanup
+  };
+}, []);
 ```
 
 ---
 
-### Callbacks
+## TypeScript Support
 
-All callbacks are optional. You can choose which events to listen to.
+`audio-tracker` is written in TypeScript and includes complete type definitions.
 
+### Type Imports
+
+```typescript
+import AudioTracker, {
+  type AudioTrackerOptions,
+  type AudioTrackerCallbacks,
+  type MediaSessionMetadata,
+  type MediaSessionArtwork,
+  type VolumeChangeData,
+} from "audio-tracker";
 ```
+
+### Type Definitions
+
+```typescript
+interface AudioTrackerOptions {
+  preload?: "none" | "metadata" | "auto";
+  loop?: boolean;
+  muted?: boolean;
+  autoplay?: boolean;
+  crossOrigin?: string;
+  volume?: number;
+  mediaSession?: MediaSessionMetadata;
+}
+
+interface MediaSessionMetadata {
+  title?: string;
+  artist?: string;
+  album?: string;
+  artwork?: MediaSessionArtwork[];
+}
+
+interface MediaSessionArtwork {
+  src: string;
+  sizes?: string;
+  type?: string;
+}
+
+interface VolumeChangeData {
+  volume: number;
+  muted: boolean;
+}
+
 interface AudioTrackerCallbacks {
-  // Playback events
   onPlay?: () => void;
   onPause?: () => void;
   onEnded?: () => void;
-  onPlaying?: () => void;
-
-  // Time events
   onTimeUpdate?: (currentTime: number) => void;
   onDurationChange?: (duration: number) => void;
-  onSeeking?: (time: number) => void;
-
-  // Loading events
-  onBufferChange?: (bufferedTime: number) => void;
-  onBufferChangePercentage?: (percentage: number) => void;
-  onWaiting?: () => void;
-  onCanPlay?: () => void;
   onLoadStart?: () => void;
-
-  // Control events
+  onCanPlay?: () => void;
+  onWaiting?: () => void;
+  onPlaying?: () => void;
+  onStalled?: () => void;
+  onSeeking?: (seekTime: number) => void;
+  onBufferChange?: (bufferedTime: number) => void;
+  onBufferPercentageChange?: (percentage: number) => void;
+  onVolumeChange?: (data: VolumeChangeData) => void;
   onRateChange?: (rate: number) => void;
-  onVolumeChange?: (volume: { volume: number; muted: boolean }) => void;
-
-  // Error handling
   onError?: (error: MediaError | null) => void;
 }
 ```
 
-#### Callback Details
-
-| Callback                   | Parameters                  | Description                                       |
-| -------------------------- | --------------------------- | ------------------------------------------------- |
-| `onPlay`                   | none                        | Fires when audio starts playing                   |
-| `onPause`                  | none                        | Fires when audio pauses                           |
-| `onEnded`                  | none                        | Fires when audio playback ends                    |
-| `onPlaying`                | none                        | Fires when playback resumes after buffering       |
-| `onTimeUpdate`             | `currentTime: number`       | Fires continuously during playback (~4 times/sec) |
-| `onDurationChange`         | `duration: number`          | Fires when audio duration becomes available       |
-| `onSeeking`                | `time: number`              | Fires when seeking starts                         |
-| `onBufferChange`           | `bufferedTime: number`      | Fires when buffer progress changes (in seconds)   |
-| `onBufferChangePercentage` | `percentage: number`        | Fires when buffer progress changes (0-100%)       |
-| `onWaiting`                | none                        | Fires when playback stops due to buffering        |
-| `onCanPlay`                | none                        | Fires when enough data is loaded to play          |
-| `onLoadStart`              | none                        | Fires when browser starts loading audio           |
-| `onRateChange`             | `rate: number`              | Fires when playback speed changes                 |
-| `onVolumeChange`           | `{ volume, muted }`         | Fires when volume or mute state changes           |
-| `onError`                  | `error: MediaError \| null` | Fires when an error occurs                        |
-
 ---
 
-### Type Definitions
+## Framework Integration
 
-AudioTracker is fully typed. Import types as needed:
+### React Example
 
-```
-import AudioTracker, {
-  AudioTrackerCallbacks,
-  AudioTrackerOptions
-} from 'audio-tracker';
-```
+```tsx
+import { useEffect, useRef, useState } from "react";
+import AudioTracker from "audio-tracker";
 
----
-
-## 💡 Usage Examples
-
-### Basic Usage
-
-```
-import AudioTracker from 'audio-tracker';
-
-const tracker = new AudioTracker('/music.mp3');
-
-tracker.init({
-  onDurationChange: (duration) => {
-    console.log(`Total duration: ${duration} seconds`);
-  },
-  onTimeUpdate: (currentTime) => {
-    console.log(`Current time: ${currentTime} seconds`);
-  }
-});
-
-// Play the audio
-tracker.play();
-
-// Pause after 5 seconds
-setTimeout(() => tracker.pause(), 5000);
-```
-
----
-
-### React Integration
-
-```
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import AudioTracker from 'audio-tracker';
-
-function AudioPlayer({ audioUrl }: { audioUrl: string }) {
+function AudioPlayer() {
   const trackerRef = useRef<AudioTracker | null>(null);
-
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(100);
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const [bufferPercentage, setBufferPercentage] = useState(0);
 
   useEffect(() => {
-    // Create tracker
-    trackerRef.current = new AudioTracker(audioUrl, {
-      preload: 'metadata',
-      loop: false,
-      volume: 100,
+    const tracker = new AudioTracker("audio.mp3", {
+      volume: 75,
       mediaSession: {
-        title: 'My Podcast Episode',
-        artist: 'Podcast Host',
-        artwork: [
-          { src: '/artwork-256.png', sizes: '256x256', type: 'image/png' }
-        ]
-      }
+        title: "My Song",
+        artist: "Artist Name",
+      },
     });
 
-    // Initialize with callbacks
-    trackerRef.current.init({
+    tracker.init({
       onPlay: () => setIsPlaying(true),
       onPause: () => setIsPlaying(false),
       onTimeUpdate: (time) => setCurrentTime(time),
       onDurationChange: (dur) => setDuration(dur),
-      onBufferChangePercentage: (percent) => setBufferPercentage(percent),
-      onEnded: () => {
-        setIsPlaying(false);
-        setCurrentTime(0);
-      }
+      onError: (error) => console.error("Error:", error),
     });
 
-    // Cleanup
+    trackerRef.current = tracker;
+
     return () => {
-      trackerRef.current?.destroy();
+      tracker.destroy();
     };
-  }, [audioUrl]);
+  }, []);
 
-  const handlePlayPause = useCallback(() => {
-    if (isPlaying) {
-      trackerRef.current?.pause();
-    } else {
-      trackerRef.current?.play();
+  const handlePlayPause = async () => {
+    if (trackerRef.current) {
+      if (isPlaying) {
+        trackerRef.current.pause();
+      } else {
+        await trackerRef.current.play();
+      }
     }
-  }, [isPlaying]);
+  };
 
-  const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = parseFloat(e.target.value);
     trackerRef.current?.seekTo(time);
-  }, []);
-
-  const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const vol = parseFloat(e.target.value);
-    setVolume(vol);
-    trackerRef.current?.setVolume(vol);
-  }, []);
-
-  const handleSpeedChange = useCallback((speed: number) => {
-    setPlaybackRate(speed);
-    trackerRef.current?.setPlaybackRate(speed);
-  }, []);
+  };
 
   return (
-    <div className="audio-player">
-      <h2>Audio Player</h2>
-
-      {/* Play/Pause Button */}
-      <button onClick={handlePlayPause}>
-        {isPlaying ? '⏸️ Pause' : '▶️ Play'}
-      </button>
-
-      {/* Time Display */}
-      <div>
-        {trackerRef.current?.calculateTime(currentTime)} /
-        {trackerRef.current?.calculateTime(duration)}
-      </div>
-
-      {/* Seek Slider with Buffer Indicator */}
-      <div style={{ position: 'relative' }}>
-        <div
-          style={{
-            position: 'absolute',
-            width: `${bufferPercentage}%`,
-            height: '100%',
-            backgroundColor: 'rgba(0,0,0,0.1)'
-          }}
-        />
-        <input
-          type="range"
-          min={0}
-          max={duration}
-          value={currentTime}
-          onChange={handleSeek}
-          step={0.1}
-        />
-      </div>
-
-      {/* Volume Control */}
-      <div>
-        <label>Volume: {volume}%</label>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={volume}
-          onChange={handleVolumeChange}
-        />
-      </div>
-
-      {/* Playback Speed */}
-      <div>
-        <label>Speed: {playbackRate}x</label>
-        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
-          <button
-            key={speed}
-            onClick={() => handleSpeedChange(speed)}
-            disabled={playbackRate === speed}
-          >
-            {speed}x
-          </button>
-        ))}
-      </div>
+    <div>
+      <button onClick={handlePlayPause}>{isPlaying ? "Pause" : "Play"}</button>
+      <input
+        type="range"
+        min="0"
+        max={duration}
+        value={currentTime}
+        onChange={handleSeek}
+      />
+      <span>
+        {trackerRef.current?.formatTime(currentTime)} /
+        {trackerRef.current?.formatTime(duration)}
+      </span>
     </div>
   );
 }
-
-export default AudioPlayer;
 ```
 
----
+### Vue Example
 
-### Vue Integration
-
-```
+```vue
 <template>
-  <div class="audio-player">
-    <h2>Audio Player</h2>
-
-    <button @click="togglePlayPause">
-      {{ isPlaying ? '⏸️ Pause' : '▶️ Play' }}
+  <div>
+    <button @click="togglePlay">
+      {{ isPlaying ? "Pause" : "Play" }}
     </button>
-
-    <div>{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</div>
-
     <input
       type="range"
       :min="0"
       :max="duration"
-      v-model="currentTime"
+      :value="currentTime"
       @input="handleSeek"
     />
-
-    <div>
-      <label>Volume: {{ volume }}%</label>
-      <input
-        type="range"
-        :min="0"
-        :max="100"
-        v-model="volume"
-        @input="handleVolumeChange"
-      />
-    </div>
+    <span>{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import AudioTracker from 'audio-tracker';
+<script setup>
+import { ref, onMounted, onUnmounted } from "vue";
+import AudioTracker from "audio-tracker";
 
-const props = defineProps<{
-  audioUrl: string;
-}>();
-
-let tracker: AudioTracker | null = null;
-
+const tracker = ref(null);
 const isPlaying = ref(false);
 const currentTime = ref(0);
 const duration = ref(0);
-const volume = ref(100);
 
 onMounted(() => {
-  tracker = new AudioTracker(props.audioUrl, {
-    preload: 'metadata',
-    volume: 100,
+  tracker.value = new AudioTracker("audio.mp3", {
+    volume: 75,
     mediaSession: {
-      title: 'My Song',
-      artist: 'Artist Name'
-    }
+      title: "My Song",
+      artist: "Artist Name",
+    },
   });
 
-  tracker.init({
+  tracker.value.init({
     onPlay: () => (isPlaying.value = true),
     onPause: () => (isPlaying.value = false),
     onTimeUpdate: (time) => (currentTime.value = time),
-    onDurationChange: (dur) => (duration.value = dur)
+    onDurationChange: (dur) => (duration.value = dur),
   });
 });
 
 onUnmounted(() => {
-  tracker?.destroy();
+  tracker.value?.destroy();
 });
 
-const togglePlayPause = () => {
+const togglePlay = async () => {
   if (isPlaying.value) {
-    tracker?.pause();
+    tracker.value.pause();
   } else {
-    tracker?.play();
+    await tracker.value.play();
   }
 };
 
-const handleSeek = (e: Event) => {
-  const time = parseFloat((e.target as HTMLInputElement).value);
-  tracker?.seekTo(time);
+const handleSeek = (e) => {
+  tracker.value.seekTo(parseFloat(e.target.value));
 };
 
-const handleVolumeChange = (e: Event) => {
-  const vol = parseFloat((e.target as HTMLInputElement).value);
-  tracker?.setVolume(vol);
-};
-
-const formatTime = (seconds: number) => {
-  return tracker?.calculateTime(seconds) || '0:00';
+const formatTime = (seconds) => {
+  return tracker.value?.formatTime(seconds) || "0:00";
 };
 </script>
 ```
 
----
+### Vanilla JavaScript
 
-### Using Existing Audio Element
+```javascript
+import AudioTracker from "audio-tracker";
 
-```
-// Get existing audio element from DOM
-const audioElement = document.getElementById('myAudio') as HTMLAudioElement;
-
-// Create tracker from existing element
-const tracker = new AudioTracker(audioElement, {
+const tracker = new AudioTracker("audio.mp3", {
+  volume: 75,
   mediaSession: {
-    title: 'Track Title',
-    artist: 'Artist Name'
+    title: "My Song",
+    artist: "Artist Name",
+  },
+});
+
+const playBtn = document.querySelector("#play-btn");
+const progressBar = document.querySelector("#progress");
+const currentTimeEl = document.querySelector("#current-time");
+const durationEl = document.querySelector("#duration");
+
+tracker.init({
+  onPlay: () => {
+    playBtn.textContent = "Pause";
+  },
+  onPause: () => {
+    playBtn.textContent = "Play";
+  },
+  onTimeUpdate: (time) => {
+    currentTimeEl.textContent = tracker.formatTime(time);
+    const progress = (time / tracker.getDuration()) * 100;
+    progressBar.style.width = `${progress}%`;
+  },
+  onDurationChange: (duration) => {
+    durationEl.textContent = tracker.formatTime(duration);
+  },
+});
+
+playBtn.addEventListener("click", async () => {
+  if (tracker.isPlaying()) {
+    tracker.pause();
+  } else {
+    await tracker.play();
   }
 });
 
-tracker.init({
-  onPlay: () => console.log('Playing from existing element')
+// Cleanup on page unload
+window.addEventListener("beforeunload", () => {
+  tracker.destroy();
 });
 ```
 
 ---
 
-## 🎯 Advanced Features
+## Media Session API
 
-### Show Loading State
+The Media Session API enables system-level media controls. When configured, users can control playback from:
 
-```
-tracker.init({
-  onWaiting: () => {
-    // Show loading spinner
-    showSpinner();
+- **Lock screen** media controls
+- **Notification center** widgets
+- **Media keys** on keyboards
+- **Bluetooth headphones** controls
+- **OS media hubs** (Windows, macOS, mobile)
+
+### Configuration
+
+```javascript
+const tracker = new AudioTracker("audio.mp3", {
+  mediaSession: {
+    title: "Bohemian Rhapsody",
+    artist: "Queen",
+    album: "A Night at the Opera",
+    artwork: [
+      { src: "cover-96.png", sizes: "96x96", type: "image/png" },
+      { src: "cover-128.png", sizes: "128x128", type: "image/png" },
+      { src: "cover-256.png", sizes: "256x256", type: "image/png" },
+      { src: "cover-512.png", sizes: "512x512", type: "image/png" },
+    ],
   },
-  onPlaying: () => {
-    // Hide loading spinner
-    hideSpinner();
-  },
-  onCanPlay: () => {
-    // Audio is ready
-    console.log('Ready to play');
-  }
 });
 ```
 
-### Display Buffer Progress
+### Supported Actions
 
-```
+- Play
+- Pause
+- Seek Forward
+- Seek Backward
+- Seek To (scrubbing)
+- Stop
+
+### Browser Support
+
+Media Session API is supported in:
+
+- Chrome/Edge 73+
+- Firefox 82+
+- Safari 15+
+- Mobile browsers (Android/iOS)
+
+---
+
+## Browser Compatibility
+
+`audio-tracker` works in all modern browsers that support:
+
+- HTML5 Audio API
+- ES6+ JavaScript
+- Promises
+
+**Supported Browsers:**
+
+- Chrome/Edge 60+
+- Firefox 55+
+- Safari 11+
+- Opera 47+
+- Mobile browsers (iOS Safari, Chrome Mobile, Samsung Internet)
+
+**Note:** Media Session API availability varies by browser. The library gracefully degrades when not supported.
+
+---
+
+## Examples
+
+### Progress Bar with Buffer Indicator
+
+```javascript
+const tracker = new AudioTracker("audio.mp3");
+
 tracker.init({
-  onBufferChangePercentage: (percentage) => {
-    console.log(`Buffered: ${percentage.toFixed(1)}%`);
-    updateBufferBar(percentage);
-  }
+  onTimeUpdate: (time) => {
+    const progress = (time / tracker.getDuration()) * 100;
+    document.querySelector(".progress").style.width = `${progress}%`;
+  },
+  onBufferPercentageChange: (percent) => {
+    document.querySelector(".buffer").style.width = `${percent}%`;
+  },
 });
+```
+
+### Custom Seek Bar
+
+```javascript
+const seekBar = document.querySelector("#seek-bar");
+
+tracker.init({
+  onDurationChange: (duration) => {
+    seekBar.max = duration;
+  },
+  onTimeUpdate: (time) => {
+    seekBar.value = time;
+  },
+});
+
+seekBar.addEventListener("input", (e) => {
+  tracker.seekTo(parseFloat(e.target.value));
+});
+```
+
+### Volume Slider with Mute Button
+
+```javascript
+const volumeSlider = document.querySelector("#volume");
+const muteBtn = document.querySelector("#mute");
+
+volumeSlider.addEventListener("input", (e) => {
+  tracker.setVolume(parseInt(e.target.value));
+});
+
+muteBtn.addEventListener("click", () => {
+  const isMuted = tracker.toggleMute();
+  muteBtn.textContent = isMuted ? "Unmute" : "Mute";
+});
+
+tracker.init({
+  onVolumeChange: ({ volume, muted }) => {
+    volumeSlider.value = volume;
+    muteBtn.textContent = muted ? "Unmute" : "Mute";
+  },
+});
+```
+
+### Playlist Implementation
+
+```javascript
+const playlist = ["song1.mp3", "song2.mp3", "song3.mp3"];
+let currentIndex = 0;
+let tracker;
+
+function loadTrack(index) {
+  if (tracker) tracker.destroy();
+
+  tracker = new AudioTracker(playlist[index], {
+    mediaSession: {
+      title: `Song ${index + 1}`,
+      artist: "Artist Name",
+    },
+  });
+
+  tracker.init({
+    onEnded: () => {
+      currentIndex = (currentIndex + 1) % playlist.length;
+      loadTrack(currentIndex);
+      tracker.play();
+    },
+  });
+}
+
+loadTrack(currentIndex);
 ```
 
 ### Error Handling
 
-```
+```javascript
 tracker.init({
   onError: (error) => {
-    if (error) {
-      console.error('Audio error:', error.message);
-
-      switch (error.code) {
-        case error.MEDIA_ERR_ABORTED:
-          alert('Playback aborted');
-          break;
-        case error.MEDIA_ERR_NETWORK:
-          alert('Network error');
-          break;
-        case error.MEDIA_ERR_DECODE:
-          alert('Decoding error');
-          break;
-        case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
-          alert('Audio format not supported');
-          break;
-      }
+    if (!error) {
+      console.error("Unknown error occurred");
+      return;
     }
-  }
+
+    switch (error.code) {
+      case error.MEDIA_ERR_ABORTED:
+        console.error("Playback aborted");
+        break;
+      case error.MEDIA_ERR_NETWORK:
+        console.error("Network error");
+        break;
+      case error.MEDIA_ERR_DECODE:
+        console.error("Decoding error");
+        break;
+      case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+        console.error("Audio format not supported");
+        break;
+    }
+  },
 });
 ```
 
 ---
 
-## 🌐 Browser Support
+## Contributing
 
-### Core Audio Features
+Contributions are welcome! Please follow these guidelines:
 
-✅ **Full Support** - All playback, volume, and speed controls
-
-| Browser         | Minimum Version |
-| --------------- | --------------- |
-| Chrome          | 57+             |
-| Firefox         | 52+             |
-| Safari          | 11+             |
-| Edge            | 79+             |
-| Opera           | 44+             |
-| iOS Safari      | 11+             |
-| Android Browser | 67+             |
-
-### Media Session API
-
-⚠️ **Progressive Enhancement** - Gracefully degrades on older browsers
-
-| Browser         | Media Session Support |
-| --------------- | --------------------- |
-| Chrome          | ✅ 73+                |
-| Firefox         | ✅ 82+                |
-| Safari          | ⚠️ 15+ (partial)      |
-| Edge            | ✅ 79+                |
-| Opera           | ✅ 60+                |
-| iOS Safari      | ⚠️ 15+ (partial)      |
-| Android Browser | ✅ 73+                |
-
-> **Note:** On browsers without Media Session support, all core audio functionality works perfectly. You just won't have lock screen controls, media keys, or notification center integration.
-
----
-
-## 🐛 Common Issues
-
-### Issue: Audio doesn't play on mobile
-
-**Solution:** Mobile browsers require user interaction before playing audio.
-
-```
-// ❌ Won't work on mobile without user interaction
-tracker.play();
-
-// ✅ Works - triggered by user click
-button.addEventListener('click', () => {
-  tracker.play();
-});
-```
-
-### Issue: Media Session not showing
-
-**Solution:** Ensure you're providing all required metadata.
-
-```
-// ❌ Missing artwork
-mediaSession: {
-  title: 'Song'
-}
-
-// ✅ Complete metadata
-mediaSession: {
-  title: 'Song Title',
-  artist: 'Artist Name',
-  album: 'Album Name',
-  artwork: [
-    { src: '/artwork.png', sizes: '256x256', type: 'image/png' }
-  ]
-}
-```
-
-### Issue: TypeScript errors
-
-**Solution:** Make sure you're using TypeScript 4.0+
-
-```
-npm install typescript@latest
-```
-
----
-
-## 📝 Changelog
-
-### v1.1.0 (2025-11-10)
-
-**New Features:**
-
-- ✨ Added `onBufferChangePercentage` callback for buffer progress (0-100%)
-- ✨ Added core audio attribute options: `loop`, `muted`, `autoplay`, `crossOrigin`, `volume`
-- ✨ Added `setAutoplay()` / `getAutoplay()` methods
-- ✨ Added `setCrossOrigin()` / `getCrossOrigin()` methods
-- ✨ Added `setPreload()` / `getPreload()` methods
-- ✨ Added `getCurrentTime()` getter method
-- ✨ Added `getDuration()` getter method
-- 🎮 Added [live demo page](https://tvicky7x.github.io/audio-tracker/)
-
-**Improvements:**
-
-- 🎯 Core audio attributes now configurable at initialization
-- 📚 Enhanced TypeScript type definitions
-- 📖 Improved documentation with new examples
-
-### v1.0.0 (2025-11-09)
-
-**Initial Release:**
-
-- 🎵 Complete audio playback control (play, pause, seek)
-- 🔊 Volume control with mute support
-- ⚡ Playback speed control
-- 🔁 Loop control
-- 🔄 Media Session API integration
-- 🪝 14 event callbacks
-- 🎯 TypeScript support with full type definitions
-- 📱 Cross-platform compatibility
-- 🎨 Framework agnostic
-- 🎧 Headless design
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
+1. **Fork the repository**
+2. **Create a feature branch:** `git checkout -b feature/amazing-feature`
+3. **Commit your changes:** `git commit -m 'Add amazing feature'`
+4. **Push to the branch:** `git push origin feature/amazing-feature`
+5. **Open a Pull Request**
 
 ### Development Setup
 
-```
+```bash
 # Clone the repository
-git clone git@github.com:tvicky7x/audio-tracker.git
+git clone https://github.com/tvicky7x/audio-tracker.git
 cd audio-tracker
 
 # Install dependencies
@@ -965,82 +1122,57 @@ npm install
 
 # Build the project
 npm run build
+
+# Run demo locally
+npm run demo:prepare
 ```
 
-### Guidelines
+### Reporting Issues
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes
-4. Build and test: `npm run build`
-5. Commit your changes: `git commit -m 'Add amazing feature'`
-6. Push to the branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
+If you encounter any bugs or have feature requests, please [open an issue](https://github.com/tvicky7x/audio-tracker/issues) with:
 
-### Code Style
-
-- Use TypeScript
-- Follow existing code patterns
-- Add JSDoc comments for public APIs
-- Keep the library headless (no UI dependencies)
+- Clear description of the problem
+- Steps to reproduce
+- Expected vs actual behavior
+- Browser/environment details
 
 ---
 
-## 📝 Repository
+## License
 
-- **GitHub:** [https://github.com/tvicky7x/audio-tracker](https://github.com/tvicky7x/audio-tracker)
-- **Issues:** [https://github.com/tvicky7x/audio-tracker/issues](https://github.com/tvicky7x/audio-tracker/issues)
-- **npm:** [https://www.npmjs.com/package/audio-tracker](https://www.npmjs.com/package/audio-tracker)
-- **Demo:** [https://tvicky7x.github.io/audio-tracker/](https://tvicky7x.github.io/audio-tracker/)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 📄 License
+## Author
 
-MIT License
+**T Vicky**
 
-Copyright (c) 2025 T Vicky
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+- GitHub: [@tvicky7x](https://github.com/tvicky7x)
+- npm: [audio-tracker](https://www.npmjs.com/package/audio-tracker)
 
 ---
 
-## 💖 Support
+## Support
 
-If you find this package helpful, please consider:
+- **Documentation:** [Demo Site](https://tvicky7x.github.io/audio-tracker/)
+- **Issues:** [GitHub Issues](https://github.com/tvicky7x/audio-tracker/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/tvicky7x/audio-tracker/discussions)
 
-- ⭐ Starring the repository on GitHub
-- 🐛 Reporting bugs and issues
-- 💡 Suggesting new features
-- 📖 Improving documentation
-- 🔀 Contributing code
+If you find this project useful, consider giving it a ⭐ on [GitHub](https://github.com/tvicky7x/audio-tracker)!
 
 ---
 
-## 🙏 Acknowledgments
+## Changelog
 
-- Built with TypeScript 5.9.3
-- Powered by Web Audio API and Media Session API
-- Inspired by the need for headless, extensible audio control
+### v1.1.0
+
+- Initial public release
+- Full TypeScript support
+- Media Session API integration
+- Comprehensive event system
+- Framework-agnostic design
 
 ---
 
-**Made with ❤️ by T Vicky**
-
-**Repository:** [github.com/tvicky7x/audio-tracker](https://github.com/tvicky7x/audio-tracker)
+**Built with ❤️ for the web audio community**

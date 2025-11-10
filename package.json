@@ -1,6 +1,6 @@
 {
   "name": "audio-tracker",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "A headless JavaScript library that gives you full control over web audio — playback, tracking, and Media Session integration made simple.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

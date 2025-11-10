@@ -2,7 +2,7 @@
 
 A headless JavaScript library that gives you full control over web audio — playback, tracking, and Media Session integration made simple.
 
-[![npm version](https://img.shields.ioMIT](https://img.shields.io/badge/License-MIT-blueimg.shields.io/badge/TypeScript-Ready[Live Demo](https://tvicky7x.github.io/audio-tracker/)** - **[npm Package](https://www.npmjs.com/package/audio-tracker)** - **[Report Bug](https://github.com/tvicky7x/audio-tracker/issues)** - **[Request Feature](https://github.com/tvicky7x/audio-tracker/issues)\*\*
+[![npm version](https://imgense: MIT](https://img.shields.io/badge/License-MIT-blueimg.shields.io/badge/TypeScript-Ready[Live Demo](https://tvicky7x.github.io/audio-tracker/)** - **[npm Package](https://www.npmjs.com/package/audio-tracker)** - **[Report Bug](https://github.com/tvicky7x/audio-tracker/issues)** - **[Request Feature](https://github.com/tvicky7x/audio-tracker/issues)\*\*
 
 ---
 
@@ -32,8 +32,8 @@ A headless JavaScript library that gives you full control over web audio — pla
   - [Vanilla JavaScript](#vanilla-javascript)
 - [Media Session API](#media-session-api)
 - [Browser Compatibility](#browser-compatibility)
-- [Examples](#examples)
 - [Contributing](#contributing)
+- [Changelog](#changelog)
 - [License](#license)
 - [Author](#author)
 - [Support](#support)
@@ -49,7 +49,7 @@ A headless JavaScript library that gives you full control over web audio — pla
 - **Headless Architecture:** No UI dependencies—bring your own design
 - **Framework Agnostic:** Works seamlessly with React, Vue, Svelte, Angular, or Vanilla JS
 - **Media Session API:** Built-in support for lock screen controls, media keys, and OS-level integration
-- **Comprehensive Events:** 15+ callback hooks covering the entire playback lifecycle
+- **Comprehensive Events:** 16+ callback hooks covering the entire playback lifecycle
 - **TypeScript First:** Fully typed with complete type definitions
 - **Lightweight:** Zero dependencies, minimal footprint
 - **Production Ready:** Includes proper cleanup and memory leak prevention
@@ -981,125 +981,6 @@ Media Session API is supported in:
 
 ---
 
-## Examples
-
-### Progress Bar with Buffer Indicator
-
-```javascript
-const tracker = new AudioTracker("audio.mp3");
-
-tracker.init({
-  onTimeUpdate: (time) => {
-    const progress = (time / tracker.getDuration()) * 100;
-    document.querySelector(".progress").style.width = `${progress}%`;
-  },
-  onBufferPercentageChange: (percent) => {
-    document.querySelector(".buffer").style.width = `${percent}%`;
-  },
-});
-```
-
-### Custom Seek Bar
-
-```javascript
-const seekBar = document.querySelector("#seek-bar");
-
-tracker.init({
-  onDurationChange: (duration) => {
-    seekBar.max = duration;
-  },
-  onTimeUpdate: (time) => {
-    seekBar.value = time;
-  },
-});
-
-seekBar.addEventListener("input", (e) => {
-  tracker.seekTo(parseFloat(e.target.value));
-});
-```
-
-### Volume Slider with Mute Button
-
-```javascript
-const volumeSlider = document.querySelector("#volume");
-const muteBtn = document.querySelector("#mute");
-
-volumeSlider.addEventListener("input", (e) => {
-  tracker.setVolume(parseInt(e.target.value));
-});
-
-muteBtn.addEventListener("click", () => {
-  const isMuted = tracker.toggleMute();
-  muteBtn.textContent = isMuted ? "Unmute" : "Mute";
-});
-
-tracker.init({
-  onVolumeChange: ({ volume, muted }) => {
-    volumeSlider.value = volume;
-    muteBtn.textContent = muted ? "Unmute" : "Mute";
-  },
-});
-```
-
-### Playlist Implementation
-
-```javascript
-const playlist = ["song1.mp3", "song2.mp3", "song3.mp3"];
-let currentIndex = 0;
-let tracker;
-
-function loadTrack(index) {
-  if (tracker) tracker.destroy();
-
-  tracker = new AudioTracker(playlist[index], {
-    mediaSession: {
-      title: `Song ${index + 1}`,
-      artist: "Artist Name",
-    },
-  });
-
-  tracker.init({
-    onEnded: () => {
-      currentIndex = (currentIndex + 1) % playlist.length;
-      loadTrack(currentIndex);
-      tracker.play();
-    },
-  });
-}
-
-loadTrack(currentIndex);
-```
-
-### Error Handling
-
-```javascript
-tracker.init({
-  onError: (error) => {
-    if (!error) {
-      console.error("Unknown error occurred");
-      return;
-    }
-
-    switch (error.code) {
-      case error.MEDIA_ERR_ABORTED:
-        console.error("Playback aborted");
-        break;
-      case error.MEDIA_ERR_NETWORK:
-        console.error("Network error");
-        break;
-      case error.MEDIA_ERR_DECODE:
-        console.error("Decoding error");
-        break;
-      case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
-        console.error("Audio format not supported");
-        break;
-    }
-  },
-});
-```
-
----
-
 ## Contributing
 
 Contributions are welcome! Please follow these guidelines:
@@ -1138,6 +1019,66 @@ If you encounter any bugs or have feature requests, please [open an issue](https
 
 ---
 
+## Changelog
+
+### v1.2.0 (2025-11-10)
+
+**New Features:**
+
+- Added `forward(seconds?)` method for skipping forward (default 10s)
+- Added `backward(seconds?)` method for rewinding backward (default 10s)
+- Added `getTimeRemaining()` method to get remaining playback time
+- Added `formatTime(seconds)` utility method for MM:SS formatting
+- Added `onStalled` callback for network stall events
+- Enhanced Media Session with `seekforward` and `seekbackward` actions
+
+**Improvements:**
+
+- Improved Media Session seek handlers with custom offset support
+- Better internal code organization with renamed callback storage
+- Enhanced error handling in Media Session updates
+- Comprehensive documentation with complete API reference
+
+---
+
+### v1.1.0 (2025-11-10)
+
+**New Features:**
+
+- Added `onBufferPercentageChange` callback for buffer progress (0-100%)
+- Added core audio attribute options: `loop`, `muted`, `autoplay`, `crossOrigin`, `volume`
+- Added `setAutoplay()` / `getAutoplay()` methods
+- Added `setCrossOrigin()` / `getCrossOrigin()` methods
+- Added `setPreload()` / `getPreload()` methods
+- Added `getCurrentTime()` getter method
+- Added `getDuration()` getter method
+- Added [live demo page](https://tvicky7x.github.io/audio-tracker/)
+
+**Improvements:**
+
+- Core audio attributes now configurable at initialization
+- Enhanced TypeScript type definitions
+- Improved documentation with new examples
+
+---
+
+### v1.0.0 (2025-11-09)
+
+**Initial Release:**
+
+- Complete audio playback control (play, pause, seek)
+- Volume control with mute support
+- Playback speed control
+- Loop control
+- Media Session API integration
+- 14 event callbacks
+- TypeScript support with full type definitions
+- Cross-platform compatibility
+- Framework agnostic
+- Headless design
+
+---
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -1160,18 +1101,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Discussions:** [GitHub Discussions](https://github.com/tvicky7x/audio-tracker/discussions)
 
 If you find this project useful, consider giving it a ⭐ on [GitHub](https://github.com/tvicky7x/audio-tracker)!
-
----
-
-## Changelog
-
-### v1.1.0
-
-- Initial public release
-- Full TypeScript support
-- Media Session API integration
-- Comprehensive event system
-- Framework-agnostic design
 
 ---
 

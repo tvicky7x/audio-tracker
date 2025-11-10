@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AudioTracker - Demo & Documentation</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav class="nav">
+      <div class="container">
+        <h1>AudioTracker</h1>
+        <div class="nav-links">
+          <a href="https://github.com/tvicky7x/audio-tracker">GitHub</a>
+          <a href="https://www.npmjs.com/package/audio-tracker">npm</a>
+          <a href="https://github.com/tvicky7x/audio-tracker#readme">Docs</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <!-- Media Session Check -->
+      <div class="alert" id="media-session-alert">
+        <code>navigator.mediaSession</code>:
+        <span id="media-session-status">Checking...</span>
+      </div>
+
+      <div class="layout">
+        <!-- Left: Demo Player -->
+        <section class="demo-section">
+          <h2>Live Demo</h2>
+
+          <div class="player">
+            <!-- Add album art -->
+            <div class="album-art">
+              <img
+                src="/demo/assets/phonk-256.jpg"
+                alt="Album artwork"
+                id="album-artwork"
+              />
+            </div>
+
+            <div class="player-info">
+              <strong id="track-title">Sample Audio</strong>
+              <span id="track-artist">AudioTracker Demo</span>
+            </div>
+
+            <div class="progress">
+              <div class="progress-track">
+                <div class="progress-buffer" id="buffer-bar"></div>
+                <div class="progress-fill" id="progress-fill"></div>
+                <input
+                  type="range"
+                  id="seek-slider"
+                  min="0"
+                  max="100"
+                  value="0"
+                  step="0.1"
+                />
+              </div>
+              <div class="time">
+                <span id="current-time">0:00</span>
+                <span id="duration">0:00</span>
+              </div>
+            </div>
+
+            <div class="controls">
+              <button id="play-pause-btn" class="btn-primary">
+                <svg
+                  id="play-icon"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="control-row">
+              <label>
+                Volume
+                <input
+                  type="range"
+                  id="volume-slider"
+                  min="0"
+                  max="100"
+                  value="100"
+                />
+                <span id="volume-value">100</span>
+              </label>
+            </div>
+
+            <div class="control-row">
+              <label>
+                Speed
+                <select id="speed-select">
+                  <option value="0.5">0.5x</option>
+                  <option value="0.75">0.75x</option>
+                  <option value="1" selected>1.0x</option>
+                  <option value="1.25">1.25x</option>
+                  <option value="1.5">1.5x</option>
+                  <option value="2">2.0x</option>
+                </select>
+              </label>
+              <label>
+                <input type="checkbox" id="loop-checkbox" />
+                Loop
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right: Code Example -->
+        <section class="code-section">
+          <h2>Implementation</h2>
+
+          <div class="tabs">
+            <button class="tab active" data-tab="install">Install</button>
+            <button class="tab" data-tab="basic">Basic</button>
+            <button class="tab" data-tab="react">React</button>
+          </div>
+
+          <div class="tab-content active" data-content="install">
+            <pre><code>npm install audio-tracker</code></pre>
+          </div>
+
+          <div class="tab-content" data-content="basic">
+            <pre><code>import AudioTracker from 'audio-tracker';
+
+const tracker = new AudioTracker('/audio.mp3', {
+  preload: 'metadata',
+  loop: false,
+  volume: 80,
+  mediaSession: {
+    title: 'My Song',
+    artist: 'Artist Name'
+  }
+});
+
+tracker.init({
+  onPlay: () => console.log('Playing'),
+  onPause: () => console.log('Paused'),
+  onTimeUpdate: (time) => console.log(time),
+  onBufferChangePercentage: (pct) => {
+    console.log(`Buffered: ${pct}%`);
+  }
+});
+
+// Control playback
+tracker.play();
+tracker.pause();
+tracker.seekTo(30);
+tracker.setVolume(80);
+tracker.setPlaybackRate(1.5);</code></pre>
+          </div>
+
+          <div class="tab-content" data-content="react">
+            <pre><code>import { useEffect, useRef, useState } from 'react';
+import AudioTracker from 'audio-tracker';
+
+function Player() {
+  const tracker = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+
+  useEffect(() => {
+    tracker.current = new AudioTracker('/audio.mp3');
+    
+    tracker.current.init({
+      onPlay: () => setIsPlaying(true),
+      onPause: () => setIsPlaying(false),
+      onTimeUpdate: (time) => setCurrentTime(time)
+    });
+
+    return () => tracker.current?.destroy();
+  }, []);
+
+  return (
+    &lt;button onClick={() => {
+      isPlaying 
+        ? tracker.current.pause() 
+        : tracker.current.play();
+    }}&gt;
+      {isPlaying ? 'Pause' : 'Play'}
+    &lt;/button&gt;
+  );
+}</code></pre>
+          </div>
+        </section>
+      </div>
+
+      <!-- Features Grid -->
+      <section class="features">
+        <h2>Features</h2>
+        <div class="feature-grid">
+          <a
+            href="https://github.com/tvicky7x/audio-tracker#%EF%B8%8F-playback-controls"
+            target="_blank"
+            class="feature"
+          >
+            <code>play() / pause()</code>
+            <p>Playback control</p>
+          </a>
+          <a
+            href="https://github.com/tvicky7x/audio-tracker#%EF%B8%8F-playback-controls"
+            target="_blank"
+            class="feature"
+          >
+            <code>seekTo(time)</code>
+            <p>Jump to position</p>
+          </a>
+          <a
+            href="https://github.com/tvicky7x/audio-tracker#-volume-controls"
+            target="_blank"
+            class="feature"
+          >
+            <code>setVolume(0-100)</code>
+            <p>Volume control</p>
+          </a>
+          <a
+            href="https://github.com/tvicky7x/audio-tracker#-playback-speed"
+            target="_blank"
+            class="feature"
+          >
+            <code>setPlaybackRate()</code>
+            <p>Speed control</p>
+          </a>
+          <a
+            href="https://github.com/tvicky7x/audio-tracker#-core-audio-attributes"
+            target="_blank"
+            class="feature"
+          >
+            <code>setLoop(bool)</code>
+            <p>Loop control</p>
+          </a>
+          <a
+            href="https://github.com/tvicky7x/audio-tracker#-api-documentation"
+            target="_blank"
+            class="feature"
+          >
+            <code>mediaSession</code>
+            <p>Lock screen controls</p>
+          </a>
+          <a
+            href="https://github.com/tvicky7x/audio-tracker#callbacks"
+            target="_blank"
+            class="feature"
+          >
+            <code>onTimeUpdate</code>
+            <p>15+ event callbacks</p>
+          </a>
+          <a
+            href="https://github.com/tvicky7x/audio-tracker#type-definitions"
+            target="_blank"
+            class="feature"
+          >
+            <code>TypeScript</code>
+            <p>Full type support</p>
+          </a>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <div class="container">
+        <p>
+          MIT License © 2025 T Vicky |
+          <a href="https://github.com/tvicky7x/audio-tracker">View Source</a>
+        </p>
+      </div>
+    </footer>
+
+    <script type="module" src="demo.js"></script>
+  </body>
+</html>

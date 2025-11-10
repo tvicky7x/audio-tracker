@@ -1,10 +1,10 @@
 # 🎵 audio-tracker
 
-> A lightweight headless JavaScript library to control and track web audio with extensible playback features.
+> A headless JavaScript library that gives you full control over web audio — playback, tracking, and Media Session integration made simple.
 
 [![npm version](https://img.shields.io/npm/v/audio-tracker.svg?style=flat-square)](https://www.npmjs.com/package/audio-tracker)
 [![npm downloads](https://img.shields.io/npm/dm/audio-tracker.svg?style=flat-square)](https://www.npmjs.com/package/audio-tracker)
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=flat-square)](https://opensource.org/licenses/ISC)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 
 ---
@@ -19,6 +19,7 @@
 - [Advanced Features](#-advanced-features)
 - [Browser Support](#-browser-support)
 - [Common Issues](#-common-issues)
+- [Changelog](#-changelog)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -32,10 +33,11 @@
 - 📱 **Cross-Platform** - Works on desktop and mobile browsers
 - 🎨 **Framework Agnostic** - Use with React, Vue, Angular, or vanilla JS
 - ⚡ **Flexible Input** - Accept URL strings or existing HTMLAudioElement
-- 🪝 **Rich Event System** - 14+ callbacks for all audio events
+- 🪝 **Rich Event System** - 15+ callbacks for all audio events
 - 🎮 **Zero Dependencies** - Pure TypeScript, no external dependencies
 - 📦 **Lightweight** - Minimal footprint, tree-shakeable
 - 🎧 **Headless** - No UI, just audio control logic
+- 🎛️ **Core Audio Attributes** - Configure preload, loop, muted, autoplay, crossOrigin, and volume
 
 ---
 
@@ -66,9 +68,13 @@ pnpm add audio-tracker
 ```
 import AudioTracker from 'audio-tracker';
 
-// Create tracker with audio URL
+// Create tracker with audio URL and options
 const tracker = new AudioTracker('/path/to/audio.mp3', {
   preload: 'metadata',
+  loop: false,
+  muted: false,
+  autoplay: false,
+  volume: 80,
   mediaSession: {
     title: 'My Song',
     artist: 'Artist Name',
@@ -85,7 +91,8 @@ tracker.init({
   onPlay: () => console.log('▶️ Playing'),
   onPause: () => console.log('⏸️ Paused'),
   onTimeUpdate: (time) => console.log(`⏱️ ${time}s`),
-  onDurationChange: (duration) => console.log(`📏 Duration: ${duration}s`)
+  onDurationChange: (duration) => console.log(`📏 Duration: ${duration}s`),
+  onBufferChangePercentage: (percent) => console.log(`📊 Buffered: ${percent}%`)
 });
 
 // Control playback
@@ -94,6 +101,7 @@ tracker.pause();
 tracker.seekTo(30); // Seek to 30 seconds
 tracker.setVolume(80); // 80% volume
 tracker.setPlaybackRate(1.5); // 1.5x speed
+tracker.setLoop(true); // Enable looping
 ```
 
 ---
@@ -121,6 +129,11 @@ new AudioTracker(
 ```
 interface AudioTrackerOptions {
   preload?: 'none' | 'metadata' | 'auto';
+  loop?: boolean;
+  muted?: boolean;
+  autoplay?: boolean;
+  crossOrigin?: 'anonymous' | 'use-credentials';
+  volume?: number; // 0-100
   mediaSession?: {
     title?: string;
     artist?: string;
@@ -264,7 +277,7 @@ const speed = tracker.getPlaybackRate();
 
 ---
 
-#### 🔁 Loop Control
+#### 🔁 Core Audio Attributes
 
 ##### `setLoop(loop: boolean): void`
 
@@ -284,6 +297,54 @@ if (tracker.isLooping()) {
 }
 ```
 
+##### `setAutoplay(autoplay: boolean): void`
+
+Set autoplay attribute.
+
+```
+tracker.setAutoplay(true);
+```
+
+##### `getAutoplay(): boolean`
+
+Get autoplay state.
+
+```
+const autoplay = tracker.getAutoplay();
+```
+
+##### `setCrossOrigin(crossOrigin: 'anonymous' | 'use-credentials' | ''): void`
+
+Set cross-origin attribute for CORS.
+
+```
+tracker.setCrossOrigin('anonymous');
+```
+
+##### `getCrossOrigin(): string | null`
+
+Get cross-origin attribute.
+
+```
+const cors = tracker.getCrossOrigin();
+```
+
+##### `setPreload(preload: 'none' | 'metadata' | 'auto'): void`
+
+Set preload strategy.
+
+```
+tracker.setPreload('auto');
+```
+
+##### `getPreload(): string`
+
+Get preload strategy.
+
+```
+const preload = tracker.getPreload();
+```
+
 ---
 
 #### 🛠️ Utilities
@@ -295,6 +356,22 @@ Format seconds to MM:SS format.
 ```
 tracker.calculateTime(125); // Returns "2:05"
 tracker.calculateTime(3661); // Returns "61:01"
+```
+
+##### `getDuration(): number`
+
+Get total audio duration in seconds.
+
+```
+const duration = tracker.getDuration();
+```
+
+##### `getCurrentTime(): number`
+
+Get current playback position in seconds.
+
+```
+const currentTime = tracker.getCurrentTime();
 ```
 
 ##### `getReadyState(): number`
@@ -353,6 +430,7 @@ interface AudioTrackerCallbacks {
 
   // Loading events
   onBufferChange?: (bufferedTime: number) => void;
+  onBufferChangePercentage?: (percentage: number) => void;
   onWaiting?: () => void;
   onCanPlay?: () => void;
   onLoadStart?: () => void;
@@ -368,22 +446,23 @@ interface AudioTrackerCallbacks {
 
 #### Callback Details
 
-| Callback           | Parameters                  | Description                                       |
-| ------------------ | --------------------------- | ------------------------------------------------- |
-| `onPlay`           | none                        | Fires when audio starts playing                   |
-| `onPause`          | none                        | Fires when audio pauses                           |
-| `onEnded`          | none                        | Fires when audio playback ends                    |
-| `onPlaying`        | none                        | Fires when playback resumes after buffering       |
-| `onTimeUpdate`     | `currentTime: number`       | Fires continuously during playback (~4 times/sec) |
-| `onDurationChange` | `duration: number`          | Fires when audio duration becomes available       |
-| `onSeeking`        | `time: number`              | Fires when seeking starts                         |
-| `onBufferChange`   | `bufferedTime: number`      | Fires when buffer progress changes                |
-| `onWaiting`        | none                        | Fires when playback stops due to buffering        |
-| `onCanPlay`        | none                        | Fires when enough data is loaded to play          |
-| `onLoadStart`      | none                        | Fires when browser starts loading audio           |
-| `onRateChange`     | `rate: number`              | Fires when playback speed changes                 |
-| `onVolumeChange`   | `{ volume, muted }`         | Fires when volume or mute state changes           |
-| `onError`          | `error: MediaError \| null` | Fires when an error occurs                        |
+| Callback                   | Parameters                  | Description                                       |
+| -------------------------- | --------------------------- | ------------------------------------------------- |
+| `onPlay`                   | none                        | Fires when audio starts playing                   |
+| `onPause`                  | none                        | Fires when audio pauses                           |
+| `onEnded`                  | none                        | Fires when audio playback ends                    |
+| `onPlaying`                | none                        | Fires when playback resumes after buffering       |
+| `onTimeUpdate`             | `currentTime: number`       | Fires continuously during playback (~4 times/sec) |
+| `onDurationChange`         | `duration: number`          | Fires when audio duration becomes available       |
+| `onSeeking`                | `time: number`              | Fires when seeking starts                         |
+| `onBufferChange`           | `bufferedTime: number`      | Fires when buffer progress changes (in seconds)   |
+| `onBufferChangePercentage` | `percentage: number`        | Fires when buffer progress changes (0-100%)       |
+| `onWaiting`                | none                        | Fires when playback stops due to buffering        |
+| `onCanPlay`                | none                        | Fires when enough data is loaded to play          |
+| `onLoadStart`              | none                        | Fires when browser starts loading audio           |
+| `onRateChange`             | `rate: number`              | Fires when playback speed changes                 |
+| `onVolumeChange`           | `{ volume, muted }`         | Fires when volume or mute state changes           |
+| `onError`                  | `error: MediaError \| null` | Fires when an error occurs                        |
 
 ---
 
@@ -441,11 +520,14 @@ function AudioPlayer({ audioUrl }: { audioUrl: string }) {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(100);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [bufferPercentage, setBufferPercentage] = useState(0);
 
   useEffect(() => {
     // Create tracker
     trackerRef.current = new AudioTracker(audioUrl, {
       preload: 'metadata',
+      loop: false,
+      volume: 100,
       mediaSession: {
         title: 'My Podcast Episode',
         artist: 'Podcast Host',
@@ -461,6 +543,7 @@ function AudioPlayer({ audioUrl }: { audioUrl: string }) {
       onPause: () => setIsPlaying(false),
       onTimeUpdate: (time) => setCurrentTime(time),
       onDurationChange: (dur) => setDuration(dur),
+      onBufferChangePercentage: (percent) => setBufferPercentage(percent),
       onEnded: () => {
         setIsPlaying(false);
         setCurrentTime(0);
@@ -512,15 +595,25 @@ function AudioPlayer({ audioUrl }: { audioUrl: string }) {
         {trackerRef.current?.calculateTime(duration)}
       </div>
 
-      {/* Seek Slider */}
-      <input
-        type="range"
-        min={0}
-        max={duration}
-        value={currentTime}
-        onChange={handleSeek}
-        step={0.1}
-      />
+      {/* Seek Slider with Buffer Indicator */}
+      <div style={{ position: 'relative' }}>
+        <div
+          style={{
+            position: 'absolute',
+            width: `${bufferPercentage}%`,
+            height: '100%',
+            backgroundColor: 'rgba(0,0,0,0.1)'
+          }}
+        />
+        <input
+          type="range"
+          min={0}
+          max={duration}
+          value={currentTime}
+          onChange={handleSeek}
+          step={0.1}
+        />
+      </div>
 
       {/* Volume Control */}
       <div>
@@ -608,6 +701,7 @@ const volume = ref(100);
 onMounted(() => {
   tracker = new AudioTracker(props.audioUrl, {
     preload: 'metadata',
+    volume: 100,
     mediaSession: {
       title: 'My Song',
       artist: 'Artist Name'
@@ -697,16 +791,10 @@ tracker.init({
 ### Display Buffer Progress
 
 ```
-let duration = 0;
-
 tracker.init({
-  onDurationChange: (dur) => {
-    duration = dur;
-  },
-  onBufferChange: (bufferedTime) => {
-    const bufferPercent = (bufferedTime / duration) * 100;
-    console.log(`Buffered: ${bufferPercent.toFixed(1)}%`);
-    updateBufferBar(bufferPercent);
+  onBufferChangePercentage: (percentage) => {
+    console.log(`Buffered: ${percentage.toFixed(1)}%`);
+    updateBufferBar(percentage);
   }
 });
 ```
@@ -818,6 +906,43 @@ mediaSession: {
 ```
 npm install typescript@latest
 ```
+
+---
+
+## 📝 Changelog
+
+### v1.1.0 (2025-11-10)
+
+**New Features:**
+
+- ✨ Added `onBufferChangePercentage` callback for buffer progress (0-100%)
+- ✨ Added core audio attribute options: `loop`, `muted`, `autoplay`, `crossOrigin`, `volume`
+- ✨ Added `setAutoplay()` / `getAutoplay()` methods
+- ✨ Added `setCrossOrigin()` / `getCrossOrigin()` methods
+- ✨ Added `setPreload()` / `getPreload()` methods
+- ✨ Added `getCurrentTime()` getter method
+- ✨ Added `getDuration()` getter method
+
+**Improvements:**
+
+- 🎯 Core audio attributes now configurable at initialization
+- 📚 Enhanced TypeScript type definitions
+- 📖 Improved documentation with new examples
+
+### v1.0.0 (2025-11-09)
+
+**Initial Release:**
+
+- 🎵 Complete audio playback control (play, pause, seek)
+- 🔊 Volume control with mute support
+- ⚡ Playback speed control
+- 🔁 Loop control
+- 🔄 Media Session API integration
+- 🪝 14 event callbacks
+- 🎯 TypeScript support with full type definitions
+- 📱 Cross-platform compatibility
+- 🎨 Framework agnostic
+- 🎧 Headless design
 
 ---
 

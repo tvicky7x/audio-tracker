@@ -1,6 +1,10 @@
+// audioTracker.ts
+
+// Define callback function types
 interface AudioTrackerCallbacks {
   onDurationChange?: (duration: number) => void;
   onBufferChange?: (bufferedTime: number) => void;
+  onBufferChangePercentage?: (percentage: number) => void;
   onTimeUpdate?: (currentTime: number) => void;
   onPlay?: () => void;
   onPause?: () => void;
@@ -15,8 +19,14 @@ interface AudioTrackerCallbacks {
   onError?: (error: MediaError | null) => void;
 }
 
+// Define options type
 interface AudioTrackerOptions {
   preload?: "none" | "metadata" | "auto";
+  loop?: boolean;
+  muted?: boolean;
+  autoplay?: boolean;
+  crossOrigin?: "anonymous" | "use-credentials";
+  volume?: number;
   mediaSession?: {
     title?: string;
     artist?: string;
@@ -36,6 +46,7 @@ export default class AudioTracker {
   private listeners: AudioTrackerCallbacks;
   private mediaSessionEnabled: boolean;
   private cleanup: (() => void) | null;
+  private duration: number;
 
   constructor(
     audioSource: string | HTMLAudioElement,
@@ -47,7 +58,6 @@ export default class AudioTracker {
       this.isExternalAudio = true;
     } else if (typeof audioSource === "string") {
       this.audio = new Audio(audioSource);
-      this.audio.preload = options.preload || "metadata";
       this.isExternalAudio = false;
     } else {
       throw new Error(
@@ -56,9 +66,27 @@ export default class AudioTracker {
     }
 
     this.options = options;
+
+    // Apply core audio attributes from options
+    if (!this.isExternalAudio) {
+      this.audio.preload = options.preload || "metadata";
+      this.audio.loop = options.loop || false;
+      this.audio.muted = options.muted || false;
+      this.audio.autoplay = options.autoplay || false;
+
+      if (options.crossOrigin) {
+        this.audio.crossOrigin = options.crossOrigin;
+      }
+
+      if (options.volume !== undefined) {
+        this.audio.volume = options.volume / 100; // Convert 0-100 to 0-1
+      }
+    }
+
     this.listeners = {};
     this.mediaSessionEnabled = false;
     this.cleanup = null;
+    this.duration = 0; // Store duration for percentage calculations
   }
 
   // Initialize the tracker with event listeners and callbacks
@@ -67,8 +95,9 @@ export default class AudioTracker {
 
     // Fired when audio duration becomes available
     const handleLoadedMetadata = (): void => {
+      this.duration = this.audio.duration;
       if (this.listeners.onDurationChange) {
-        this.listeners.onDurationChange(this.audio.duration);
+        this.listeners.onDurationChange(this.duration);
       }
       this.updateBuffer();
       this.updatePositionState();
@@ -180,8 +209,9 @@ export default class AudioTracker {
 
     // Check if audio metadata is already loaded
     if (this.audio.readyState >= 1) {
+      this.duration = this.audio.duration;
       if (this.listeners.onDurationChange) {
-        this.listeners.onDurationChange(this.audio.duration);
+        this.listeners.onDurationChange(this.duration);
       }
       this.updateBuffer();
     } else {
@@ -233,8 +263,16 @@ export default class AudioTracker {
   private updateBuffer(): void {
     if (this.audio.buffered.length > 0) {
       const bufferEnd = this.audio.buffered.end(this.audio.buffered.length - 1);
+
+      // Callback with buffered time in seconds
       if (this.listeners.onBufferChange) {
         this.listeners.onBufferChange(bufferEnd);
+      }
+
+      // Callback with buffered percentage (0-100)
+      if (this.listeners.onBufferChangePercentage && this.duration > 0) {
+        const bufferPercentage = (bufferEnd / this.duration) * 100;
+        this.listeners.onBufferChangePercentage(bufferPercentage);
       }
     }
   }
@@ -295,7 +333,7 @@ export default class AudioTracker {
   }
 
   // Set volume level (0-100 scale)
-  setVolume(value: number /* 0–100 */): void {
+  setVolume(value: number): void {
     this.audio.volume = value / 100;
   }
 
@@ -340,6 +378,36 @@ export default class AudioTracker {
     return this.audio.loop;
   }
 
+  // Set autoplay (must be called before playing)
+  setAutoplay(autoplay: boolean): void {
+    this.audio.autoplay = autoplay;
+  }
+
+  // Get autoplay state
+  getAutoplay(): boolean {
+    return this.audio.autoplay;
+  }
+
+  // Set cross-origin attribute
+  setCrossOrigin(crossOrigin: "anonymous" | "use-credentials" | ""): void {
+    this.audio.crossOrigin = crossOrigin;
+  }
+
+  // Get cross-origin attribute
+  getCrossOrigin(): string | null {
+    return this.audio.crossOrigin;
+  }
+
+  // Set preload strategy
+  setPreload(preload: "none" | "metadata" | "auto"): void {
+    this.audio.preload = preload;
+  }
+
+  // Get preload strategy
+  getPreload(): string {
+    return this.audio.preload;
+  }
+
   // Get current ready state (loading status)
   getReadyState(): number {
     return this.audio.readyState;
@@ -353,6 +421,16 @@ export default class AudioTracker {
   // Check if audio is currently playing
   isPlaying(): boolean {
     return !this.audio.paused && !this.audio.ended && this.audio.readyState > 2;
+  }
+
+  // Get current duration in seconds
+  getDuration(): number {
+    return this.duration;
+  }
+
+  // Get current time position
+  getCurrentTime(): number {
+    return this.audio.currentTime;
   }
 
   // Configure Media Session API for lock screen controls
@@ -414,7 +492,7 @@ export default class AudioTracker {
       ],
       [
         "seekto",
-        (details) => {
+        (details: MediaSessionActionDetails) => {
           // Seek to exact position from lock screen scrubber
           if (details.fastSeek && "fastSeek" in this.audio) {
             (this.audio as any).fastSeek(details.seekTime!);
@@ -456,3 +534,6 @@ export default class AudioTracker {
     }
   }
 }
+
+// Export types for external use
+export type { AudioTrackerCallbacks, AudioTrackerOptions };

@@ -282,24 +282,24 @@ interface AudioTrackerCallbacks {
 
 **Callback Reference:**
 
-| Callback                   | Parameters                           | Description                                 | Icon |
-| -------------------------- | ------------------------------------ | ------------------------------------------- | ---- |
-| `onPlay`                   | None                                 | Fired when playback starts                  | ▶️   |
-| `onPause`                  | None                                 | Fired when playback pauses                  | ⏸️   |
-| `onEnded`                  | None                                 | Fired when playback completes               | ⏹️   |
-| `onTimeUpdate`             | `currentTime: number`                | Fired continuously during playback          | ⏱️   |
-| `onDurationChange`         | `duration: number`                   | Fired when duration metadata loads          | 📏   |
-| `onLoadStart`              | None                                 | Fired when browser starts loading           | 📥   |
-| `onCanPlay`                | None                                 | Fired when enough data is buffered          | ✅   |
-| `onWaiting`                | None                                 | Fired when playback stalls (buffering)      | ⏳   |
-| `onPlaying`                | None                                 | Fired when playback resumes after buffering | ▶️   |
-| `onStalled`                | None                                 | Fired on network stall                      | 🌐   |
-| `onSeeking`                | `seekTime: number`                   | Fired when seek operation starts            | ⏩   |
-| `onBufferChange`           | `bufferedTime: number`               | Fired when buffered time updates            | 📊   |
-| `onBufferPercentageChange` | `percentage: number`                 | Fired when buffer percentage changes        | 📈   |
-| `onVolumeChange`           | `{ volume: number, muted: boolean }` | Fired on volume/mute change                 | 🔊   |
-| `onRateChange`             | `rate: number`                       | Fired when playback rate changes            | ⚡   |
-| `onError`                  | `error: MediaError \| null`          | Fired on playback error                     | 🚨   |
+| Callback                   | Parameters                           | Description                                 |
+| -------------------------- | ------------------------------------ | ------------------------------------------- |
+| `onPlay`                   | None                                 | Fired when playback starts                  |
+| `onPause`                  | None                                 | Fired when playback pauses                  |
+| `onEnded`                  | None                                 | Fired when playback completes               |
+| `onTimeUpdate`             | `currentTime: number`                | Fired continuously during playback          |
+| `onDurationChange`         | `duration: number`                   | Fired when duration metadata loads          |
+| `onLoadStart`              | None                                 | Fired when browser starts loading           |
+| `onCanPlay`                | None                                 | Fired when enough data is buffered          |
+| `onWaiting`                | None                                 | Fired when playback stalls (buffering)      |
+| `onPlaying`                | None                                 | Fired when playback resumes after buffering |
+| `onStalled`                | None                                 | Fired on network stall                      |
+| `onSeeking`                | `seekTime: number`                   | Fired when seek operation starts            |
+| `onBufferChange`           | `bufferedTime: number`               | Fired when buffered time updates            |
+| `onBufferPercentageChange` | `percentage: number`                 | Fired when buffer percentage changes        |
+| `onVolumeChange`           | `{ volume: number, muted: boolean }` | Fired on volume/mute change                 |
+| `onRateChange`             | `rate: number`                       | Fired when playback rate changes            |
+| `onError`                  | `error: MediaError \| null`          | Fired on playback error                     |
 
 **Example:**
 

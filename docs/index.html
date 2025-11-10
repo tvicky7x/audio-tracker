@@ -3,209 +3,829 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AudioTracker - Demo</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>AudioTracker Demo</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: #ffffff;
+        color: #1a1a1a;
+        line-height: 1.6;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      /* Header */
+      header {
+        padding-bottom: 25px;
+        border-bottom: 1px solid #e5e5e5;
+        margin-bottom: 35px;
+      }
+
+      h1 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #000;
+      }
+
+      .subtitle {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 0;
+      }
+
+      .links {
+        display: flex;
+        gap: 15px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #f0f0f0;
+      }
+
+      .links a {
+        color: #666;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        transition: color 0.15s;
+      }
+
+      .links a:hover {
+        color: #000;
+      }
+
+      /* Sections */
+      .section {
+        margin-bottom: 50px;
+      }
+
+      .section-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #000;
+      }
+
+      /* Demo Box */
+      .demo-box {
+        background: #fafafa;
+        border: 1px solid #e0e0e0;
+        padding: 40px 30px;
+      }
+
+      /* Media Session Status */
+      .media-session-status {
+        background: #fafafa;
+        border: 1px solid #e0e0e0;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+      }
+
+      .status-indicator {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #666;
+      }
+
+      .status-indicator.success {
+        background: #000;
+      }
+
+      .status-indicator.error {
+        background: #999;
+      }
+
+      .media-session-info {
+        flex: 1;
+        color: #666;
+      }
+
+      /* Player */
+      .player {
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      .album-art {
+        width: 180px;
+        height: 180px;
+        margin: 0 auto 25px;
+        border: 1px solid #e0e0e0;
+        overflow: hidden;
+      }
+
+      .album-art img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .track-info {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      .track-title {
+        font-size: 17px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: #000;
+      }
+
+      .track-artist {
+        font-size: 14px;
+        color: #666;
+      }
+
+      /* Progress */
+      .progress-section {
+        margin-bottom: 25px;
+      }
+
+      .time-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 8px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 5px;
+        background: #e5e5e5;
+        position: relative;
+        cursor: pointer;
+      }
+
+      .progress-buffer {
+        position: absolute;
+        height: 100%;
+        background: #d4d4d4;
+      }
+
+      .progress-fill {
+        position: absolute;
+        height: 100%;
+        background: #000;
+      }
+
+      /* Controls */
+      .controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 25px;
+      }
+
+      button {
+        background: #fff;
+        border: 1px solid #d4d4d4;
+        padding: 10px 14px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.15s;
+      }
+
+      button:hover {
+        border-color: #000;
+      }
+
+      button.primary {
+        padding: 12px 24px;
+        background: #000;
+        color: #fff;
+        border-color: #000;
+        font-weight: 500;
+      }
+
+      button.primary:hover {
+        background: #1a1a1a;
+      }
+
+      /* Settings */
+      .settings-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-top: 1px solid #e5e5e5;
+      }
+
+      .settings-row:first-child {
+        border-top: none;
+        padding-top: 0;
+      }
+
+      .label {
+        font-size: 14px;
+        color: #666;
+        min-width: 70px;
+        font-weight: 500;
+      }
+
+      .slider {
+        flex: 1;
+        height: 3px;
+        background: #e5e5e5;
+        position: relative;
+        cursor: pointer;
+      }
+
+      .slider-fill {
+        height: 100%;
+        background: #000;
+      }
+
+      .value-display {
+        min-width: 40px;
+        text-align: right;
+        font-size: 13px;
+        color: #666;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .speed-buttons {
+        display: flex;
+        gap: 6px;
+        flex: 1;
+      }
+
+      .speed-buttons button {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+
+      .speed-buttons button.active {
+        background: #000;
+        color: #fff;
+        border-color: #000;
+      }
+
+      /* Checkboxes */
+      .checkbox-group {
+        display: flex;
+        gap: 16px;
+      }
+
+      .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+      }
+
+      .checkbox-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        border: 1px solid #d4d4d4;
+      }
+
+      .checkbox-item label {
+        font-size: 13px;
+        color: #666;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      /* Status */
+      .playback-status {
+        text-align: center;
+        padding: 12px;
+        background: #fff;
+        font-size: 13px;
+        color: #666;
+        margin-top: 20px;
+        border: 1px solid #e5e5e5;
+      }
+
+      /* Stats */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: #e5e5e5;
+        border: 1px solid #e5e5e5;
+        margin-top: 20px;
+      }
+
+      .stat-item {
+        background: #fff;
+        padding: 16px;
+        text-align: center;
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
+      .stat-value {
+        font-size: 20px;
+        font-weight: 600;
+        color: #000;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Code */
+      .code-block {
+        background: #fafafa;
+        border: 1px solid #e0e0e0;
+        padding: 20px;
+        font-family: "Monaco", "Courier New", monospace;
+        font-size: 13px;
+        overflow-x: auto;
+        position: relative;
+        margin-top: 12px;
+      }
+
+      .copy-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: #fff;
+        font-weight: 500;
+      }
+
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        line-height: 1.6;
+      }
+
+      code {
+        color: #1a1a1a;
+      }
+
+      /* Icons */
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .primary svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      @media (max-width: 768px) {
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .container {
+          padding: 30px 15px;
+        }
+
+        .checkbox-group {
+          flex-direction: column;
+          gap: 8px;
+        }
+      }
+    </style>
   </head>
   <body>
-    <nav class="nav">
-      <div class="container">
-        <h1>🎵 AudioTracker</h1>
-        <div class="nav-links">
-          <a href="https://github.com/tvicky7x/audio-tracker">GitHub</a>
-          <a href="https://www.npmjs.com/package/audio-tracker">npm</a>
-          <a href="https://github.com/tvicky7x/audio-tracker#readme">Docs</a>
-        </div>
-      </div>
-    </nav>
-
     <div class="container">
-      <div class="alert">
-        odede>navigator.mediaSession</code>:
-        <span id="media-session-status">Checking...</span>
-      </div>
+      <!-- Header -->
+      <header>
+        <h1>AudioTracker</h1>
+        <p class="subtitle">
+          Headless audio library with Media Session API support
+        </p>
+        <div class="links">
+          <a
+            href="https://github.com/tvicky7x/audio-tracker.git"
+            target="_blank"
+            >GitHub</a
+          >
+          <a href="https://www.npmjs.com/package/audio-tracker" target="_blank"
+            >npm</a
+          >
+          <a
+            href="https://github.com/tvicky7x/audio-tracker#readme"
+            target="_blank"
+            >Documentation</a
+          >
+        </div>
+      </header>
 
-      <div class="layout">
-        <!-- Demo Player -->
-        <section>
-          <h2>Live Demo</h2>
+      <!-- Demo Section -->
+      <section class="section">
+        <h2 class="section-title">Interactive Demo</h2>
+
+        <!-- Media Session Status -->
+        <div class="media-session-status" id="mediaSessionStatus">
+          <div class="status-indicator" id="statusIndicator"></div>
+          <div class="media-session-info" id="mediaSessionInfo">
+            Checking Media Session API...
+          </div>
+        </div>
+
+        <div class="demo-box">
           <div class="player">
+            <!-- Album Art -->
             <div class="album-art">
-              <img src="assets/phonk-256.jpg" alt="Album artwork" />
+              <img src="assets/phonk-256.jpg" alt="Album Art" />
             </div>
 
+            <!-- Track Info -->
             <div class="track-info">
-              <strong>Sample Audio</strong>
-              <span>AudioTracker Demo</span>
+              <div class="track-title">Phonk Track</div>
+              <div class="track-artist">Demo Audio</div>
             </div>
 
-            <div class="progress-container">
-              <input
-                type="range"
-                id="seek-slider"
-                min="0"
-                max="100"
-                value="0"
-                step="0.1"
-              />
-              <div class="progress-bg">
-                <div class="progress-buffer" id="buffer-bar"></div>
-                <div class="progress-fill" id="progress-fill"></div>
-              </div>
-              <div class="time-display">
-                <span id="current-time">0:00</span>
+            <!-- Progress -->
+            <div class="progress-section">
+              <div class="time-row">
+                <span id="currentTime">0:00</span>
                 <span id="duration">0:00</span>
               </div>
+              <div class="progress-bar" id="progressBar">
+                <div class="progress-buffer" id="progressBuffer"></div>
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
             </div>
 
+            <!-- Controls -->
             <div class="controls">
-              <button id="backward-btn" class="btn-icon" title="Backward 10s">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 19l-7-7 7-7M18 19l-7-7 7-7"/>
+              <button id="backwardBtn" title="Rewind 10s">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m11 19-9-7 9-7v14z" />
+                  <path d="m22 19-9-7 9-7v14z" />
                 </svg>
-                <span>10</span>
               </button>
-
-              <button id="play-btn" class="btn-primary">
-                <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8 5v14l11-7z" />
+              <button class="primary" id="playPauseBtn">
+                <svg
+                  id="playIcon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                <svg
+                  id="pauseIcon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  style="display: none"
+                >
+                  <rect x="6" y="4" width="4" height="16" />
+                  <rect x="14" y="4" width="4" height="16" />
                 </svg>
               </button>
-
-              <button id="forward-btn" class="btn-icon" title="Forward 10s">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M13 5l7 7-7 7M6 5l7 7-7 7"/>
+              <button id="forwardBtn" title="Skip 10s">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m13 19 9-7-9-7v14z" />
+                  <path d="m2 19 9-7-9-7v14z" />
                 </svg>
-                <span>10</span>
               </button>
             </div>
 
-            <div class="control-row">
-              <label>
-                Volume
-                <input type="range" id="volume" min="0" max="100" value="100" />
-                <span id="volume-value">100</span>
-              </label>
+            <!-- Settings -->
+            <div class="settings">
+              <!-- Volume -->
+              <div class="settings-row">
+                <span class="label">Volume</span>
+                <div class="slider" id="volumeSlider">
+                  <div
+                    class="slider-fill"
+                    id="volumeFill"
+                    style="width: 75%"
+                  ></div>
+                </div>
+                <span class="value-display" id="volumeValue">75</span>
+              </div>
+
+              <!-- Speed -->
+              <div class="settings-row">
+                <span class="label">Speed</span>
+                <div class="speed-buttons">
+                  <button data-speed="0.5">0.5×</button>
+                  <button data-speed="1" class="active">1×</button>
+                  <button data-speed="1.5">1.5×</button>
+                  <button data-speed="2">2×</button>
+                </div>
+              </div>
+
+              <!-- Loop & Mute -->
+              <div class="settings-row">
+                <span class="label">Options</span>
+                <div class="checkbox-group">
+                  <div class="checkbox-item">
+                    <input type="checkbox" id="loopCheckbox" />
+                    <label for="loopCheckbox">Loop</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input type="checkbox" id="muteCheckbox" />
+                    <label for="muteCheckbox">Mute</label>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div class="control-row">
-              <label>
-                Speed
-                <select id="speed">
-                  <option value="0.5">0.5x</option>
-                  <option value="0.75">0.75x</option>
-                  <option value="1" selected>1.0x</option>
-                  <option value="1.25">1.25x</option>
-                  <option value="1.5">1.5x</option>
-                  <option value="2">2.0x</option>
-                </select>
-              </label>
-              <label>
-                <input type="checkbox" id="loop" />
-                Loop
-              </label>
+            <!-- Status -->
+            <div class="playback-status" id="status">Ready</div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+              <div class="stat-item">
+                <div class="stat-label">Buffer</div>
+                <div class="stat-value" id="bufferStat">0%</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">Current</div>
+                <div class="stat-value" id="currentTimeStat">0:00</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">Remaining</div>
+                <div class="stat-value" id="remainingStat">0:00</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">Volume</div>
+                <div class="stat-value" id="volumeStat">75</div>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- Code Examples -->
-        <section>
-          <h2>Quick Start</h2>
+      <!-- Installation -->
+      <section class="section">
+        <h2 class="section-title">Installation</h2>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copy('npm install audio-tracker')">
+            Copy
+          </button>
+          <pre><code>npm install audio-tracker</code></pre>
+        </div>
+      </section>
 
-          <div class="tabs">
-            <button class="tab active" data-tab="install">Install</button>
-            <button class="tab" data-tab="basic">Basic</button>
-            <button class="tab" data-tab="react">React</button>
-          </div>
+      <!-- Usage -->
+      <section class="section">
+        <h2 class="section-title">Usage Example</h2>
+        <div class="code-block">
+          <button
+            class="copy-btn"
+            onclick="copy(document.getElementById('usage').textContent)"
+          >
+            Copy
+          </button>
+          <pre><code id="usage">import AudioTracker from 'audio-tracker';
 
-          <div class="tab-content active" data-content="install">
-            <pre><code>npm install audio-tracker</code></pre>
-          </div>
-
-          <div class="tab-content" data-content="basic">
-            <pre><code>import AudioTracker from 'audio-tracker';
-
-const tracker = new AudioTracker('/audio.mp3', {
-  volume: 80,
-  mediaSession: { title: 'My Song', artist: 'Artist' }
+// Initialize with options
+const tracker = new AudioTracker('audio.mp3', {
+  volume: 75,
+  preload: 'auto',
+  mediaSession: {
+    title: 'Song Title',
+    artist: 'Artist Name',
+    artwork: [{ src: 'cover.jpg', sizes: '512x512' }]
+  }
 });
 
+// Setup callbacks
 tracker.init({
   onPlay: () => console.log('Playing'),
-  onTimeUpdate: (time) => console.log(time)
+  onPause: () => console.log('Paused'),
+  onTimeUpdate: (time) => {
+    // Update UI with current time
+    const progress = (time / tracker.getDuration()) * 100;
+    progressBar.style.width = `${progress}%`;
+  },
+  onBufferPercentageChange: (percent) => {
+    bufferBar.style.width = `${percent}%`;
+  },
+  onError: (error) => console.error('Error:', error)
 });
 
-tracker.play();
-tracker.forward(10);
-tracker.backward(10);
-tracker.setVolume(80);</code></pre>
-          </div>
+// Playback controls
+await tracker.play();
+tracker.pause();
+tracker.seekTo(30);              // Jump to 30s
+tracker.forward(10);             // Skip forward 10s
+tracker.backward(10);            // Skip backward 10s
 
-          <div class="tab-content" data-content="react">
-            <pre>odede>function Player() {
-  const ref = useRef(null);
-  const [playing, setPlaying] = useState(false);
+// Volume & speed
+tracker.setVolume(80);           // 0-100
+tracker.setPlaybackRate(1.5);    // 0.25-4.0
+tracker.toggleMute();
 
-  useEffect(() => {
-    ref.current = new AudioTracker('/audio.mp3');
-    ref.current.init({
-      onPlay: () => setPlaying(true),
-      onPause: () => setPlaying(false)
-    });
-    return () => ref.current?.destroy();
-  }, []);
+// Get state
+tracker.isPlaying();             // boolean
+tracker.getCurrentTime();        // seconds
+tracker.getDuration();           // seconds
+tracker.formatTime(125);         // "2:05"
 
-  return (
-    &lt;button onClick={() => 
-      ref.current.isPlaying() 
-        ? ref.current.pause() 
-        : ref.current.play()
-    }&gt;
-      {playing ? 'Pause' : 'Play'}
-    &lt;/button&gt;
-  );
-}</code></pre>
-          </div>
-        </section>
-      </div>
-
-      <section class="features">
-        <h2>Features</h2>
-        <div class="feature-grid">
-          <div class="feature">
-            <code>play() / pause()</code>
-            <p>Control playback</p>
-          </div>
-          <div class="feature">
-            <code>forward() / backward()</code>
-            <p>Skip 10 seconds</p>
-          </div>
-          <div class="feature">
-            <code>setVolume()</code>
-            <p>Volume control (0-100)</p>
-          </div>
-          <div class="feature">
-            <code>setPlaybackRate()</code>
-            <p>Speed control</p>
-          </div>
-          <div class="feature">
-            <code>mediaSession</code>
-            <p>Lock screen controls</p>
-          </div>
-          <div class="feature">
-            <code>TypeScript</code>
-            <p>Full type support</p>
-          </div>
+// Cleanup (important!)
+tracker.destroy();</code></pre>
         </div>
       </section>
     </div>
 
-    <footer>
-      <div class="container">
-        MIT License © 2025 T Vicky |
-        <a href="https://github.com/tvicky7x/audio-tracker">GitHub</a>
-      </div>
-    </footer>
+    <!-- Audio Element -->
+    <audio id="audioElement" src="assets/phonk-demo.mp3"></audio>
 
-    <script type="module" src="demo.js"></script>
+    <script type="module">
+      import AudioTracker from "https://unpkg.com/audio-tracker@latest/dist/index.js";
+
+      // Check Media Session API Support
+      function checkMediaSessionSupport() {
+        const statusEl = document.getElementById("mediaSessionStatus");
+        const indicatorEl = document.getElementById("statusIndicator");
+        const infoEl = document.getElementById("mediaSessionInfo");
+
+        if ("mediaSession" in navigator) {
+          indicatorEl.classList.add("success");
+          infoEl.textContent =
+            "Media Session API supported — use keyboard/OS media controls";
+        } else {
+          indicatorEl.classList.add("error");
+          infoEl.textContent =
+            "Media Session API not supported in this browser";
+        }
+      }
+
+      checkMediaSessionSupport();
+
+      // Initialize tracker
+      const audio = document.getElementById("audioElement");
+      const tracker = new AudioTracker(audio, {
+        volume: 75,
+        mediaSession: {
+          title: "Phonk Track",
+          artist: "Demo Audio",
+          album: "AudioTracker Demo",
+          artwork: [
+            { src: "assets/phonk-96.jpg", sizes: "96x96", type: "image/jpeg" },
+            {
+              src: "assets/phonk-256.jpg",
+              sizes: "256x256",
+              type: "image/jpeg",
+            },
+          ],
+        },
+      });
+
+      // DOM elements
+      const $ = (id) => document.getElementById(id);
+      const playPauseBtn = $("playPauseBtn");
+      const playIcon = $("playIcon");
+      const pauseIcon = $("pauseIcon");
+      const progressBar = $("progressBar");
+      const progressFill = $("progressFill");
+      const progressBuffer = $("progressBuffer");
+      const currentTime = $("currentTime");
+      const duration = $("duration");
+      const volumeSlider = $("volumeSlider");
+      const volumeFill = $("volumeFill");
+      const volumeValue = $("volumeValue");
+      const status = $("status");
+      const bufferStat = $("bufferStat");
+      const currentTimeStat = $("currentTimeStat");
+      const remainingStat = $("remainingStat");
+      const volumeStat = $("volumeStat");
+      const loopCheckbox = $("loopCheckbox");
+      const muteCheckbox = $("muteCheckbox");
+
+      // Initialize tracker
+      tracker.init({
+        onPlay: () => {
+          playIcon.style.display = "none";
+          pauseIcon.style.display = "block";
+          status.textContent = "Playing";
+        },
+        onPause: () => {
+          playIcon.style.display = "block";
+          pauseIcon.style.display = "none";
+          status.textContent = "Paused";
+        },
+        onEnded: () => {
+          playIcon.style.display = "block";
+          pauseIcon.style.display = "none";
+          status.textContent = "Ended";
+        },
+        onTimeUpdate: (time) => {
+          currentTime.textContent = tracker.formatTime(time);
+          currentTimeStat.textContent = tracker.formatTime(time);
+          remainingStat.textContent = tracker.formatTime(
+            tracker.getTimeRemaining()
+          );
+          const percent = (time / tracker.getDuration()) * 100;
+          progressFill.style.width = `${percent}%`;
+        },
+        onDurationChange: (dur) => {
+          duration.textContent = tracker.formatTime(dur);
+        },
+        onBufferPercentageChange: (percent) => {
+          progressBuffer.style.width = `${percent}%`;
+          bufferStat.textContent = `${Math.round(percent)}%`;
+        },
+        onVolumeChange: (data) => {
+          volumeStat.textContent = Math.round(data.volume);
+        },
+        onLoadStart: () => (status.textContent = "Loading..."),
+        onCanPlay: () => (status.textContent = "Ready"),
+        onWaiting: () => (status.textContent = "Buffering..."),
+      });
+
+      // Event handlers
+      playPauseBtn.onclick = () => {
+        tracker.isPlaying() ? tracker.pause() : tracker.play();
+      };
+
+      $("backwardBtn").onclick = () => tracker.backward(10);
+      $("forwardBtn").onclick = () => tracker.forward(10);
+
+      progressBar.onclick = (e) => {
+        const rect = progressBar.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        tracker.seekTo(percent * tracker.getDuration());
+      };
+
+      volumeSlider.onclick = (e) => {
+        const rect = volumeSlider.getBoundingClientRect();
+        const percent = Math.max(
+          0,
+          Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)
+        );
+        tracker.setVolume(percent);
+        volumeFill.style.width = `${percent}%`;
+        volumeValue.textContent = Math.round(percent);
+        volumeStat.textContent = Math.round(percent);
+      };
+
+      document.querySelectorAll(".speed-buttons button").forEach((btn) => {
+        btn.onclick = () => {
+          const speed = parseFloat(btn.dataset.speed);
+          tracker.setPlaybackRate(speed);
+          document
+            .querySelectorAll(".speed-buttons button")
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+        };
+      });
+
+      // Loop checkbox
+      loopCheckbox.onchange = (e) => {
+        tracker.setLoop(e.target.checked);
+      };
+
+      // Mute checkbox
+      muteCheckbox.onchange = (e) => {
+        tracker.setMuted(e.target.checked);
+      };
+
+      window.copy = async (text) => {
+        await navigator.clipboard.writeText(text);
+        event.target.textContent = "Copied!";
+        setTimeout(() => (event.target.textContent = "Copy"), 2000);
+      };
+    </script>
   </body>
 </html>

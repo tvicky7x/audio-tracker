@@ -7,6 +7,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 
+**[🎮 Live Demo](https://tvicky7x.github.io/audio-tracker/)** | **[📖 Documentation](#-api-documentation)** | **[💾 Installation](#-installation)**
+
 ---
 
 ## 📋 Table of Contents
@@ -922,6 +924,7 @@ npm install typescript@latest
 - ✨ Added `setPreload()` / `getPreload()` methods
 - ✨ Added `getCurrentTime()` getter method
 - ✨ Added `getDuration()` getter method
+- 🎮 Added [live demo page](https://tvicky7x.github.io/audio-tracker/)
 
 **Improvements:**
 
@@ -988,6 +991,7 @@ npm run build
 - **GitHub:** [https://github.com/tvicky7x/audio-tracker](https://github.com/tvicky7x/audio-tracker)
 - **Issues:** [https://github.com/tvicky7x/audio-tracker/issues](https://github.com/tvicky7x/audio-tracker/issues)
 - **npm:** [https://www.npmjs.com/package/audio-tracker](https://www.npmjs.com/package/audio-tracker)
+- **Demo:** [https://tvicky7x.github.io/audio-tracker/](https://tvicky7x.github.io/audio-tracker/)
 
 ---
 

@@ -34,7 +34,7 @@
 - 📱 **Cross-Platform** - Works on desktop and mobile browsers
 - 🎨 **Framework Agnostic** - Use with React, Vue, Angular, or vanilla JS
 - ⚡ **Flexible Input** - Accept URL strings or existing HTMLAudioElement
-- 🪝 **Rich Event System** - 17+ callbacks for all audio events
+- 🪝 **Rich Event System** - 18+ callbacks for all audio events
 - 🎮 **Zero Dependencies** - Pure TypeScript, no external dependencies
 - 📦 **Lightweight** - Minimal footprint, tree-shakeable
 - 🎧 **Headless** - No UI, just audio control logic
@@ -172,7 +172,7 @@ tracker.init({
 
 ##### `play(): Promise<void>`
 
-Start audio playback. Returns a Promise that resolves when playback starts.[1][2]
+Start audio playback. Returns a Promise that resolves when playback starts.
 
 ```typescript
 await tracker.play();
@@ -196,7 +196,7 @@ tracker.seekTo(45); // Jump to 45 seconds
 
 ##### `forward(seconds?: number): void`
 
-Skip forward by specified seconds (default: 10).[5][1]
+Skip forward by specified seconds (default: 10).
 
 ```typescript
 tracker.forward(); // Skip 10 seconds
@@ -205,7 +205,7 @@ tracker.forward(30); // Skip 30 seconds
 
 ##### `backward(seconds?: number): void`
 
-Skip backward by specified seconds (default: 10).[1][5]
+Skip backward by specified seconds (default: 10).
 
 ```typescript
 tracker.backward(); // Rewind 10 seconds
@@ -467,7 +467,8 @@ interface AudioTrackerCallbacks {
 
   // Control events
   onRateChange?: (rate: number) => void;
-  onVolumeChange?: (volume: { volume: number; muted: boolean }) => void;
+  onVolumeChange?: (volume: number) => void;
+  onMuteChange?: (muted: boolean) => void;
 
   // Error handling
   onError?: (error: MediaError | null) => void;
@@ -492,7 +493,8 @@ interface AudioTrackerCallbacks {
 | `onLoadStart`              | none                        | Fires when browser starts loading audio           |
 | `onStalled`                | none                        | Fires when network stalls                         |
 | `onRateChange`             | `rate: number`              | Fires when playback speed changes                 |
-| `onVolumeChange`           | `{ volume, muted }`         | Fires when volume or mute state changes           |
+| `onVolumeChange`           | `volume: number`            | Fires when volume changes (0-100)                 |
+| `onMuteChange`             | `muted: boolean`            | Fires when mute state changes                     |
 | `onError`                  | `error: MediaError \| null` | Fires when an error occurs                        |
 
 ---
@@ -549,6 +551,7 @@ function AudioPlayer({ audioUrl }: { audioUrl: string }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(100);
+  const [isMuted, setIsMuted] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [bufferPercentage, setBufferPercentage] = useState(0);
 
@@ -573,6 +576,8 @@ function AudioPlayer({ audioUrl }: { audioUrl: string }) {
       onPause: () => setIsPlaying(false),
       onTimeUpdate: (time) => setCurrentTime(time),
       onDurationChange: (dur) => setDuration(dur),
+      onVolumeChange: (vol) => setVolume(vol),
+      onMuteChange: (muted) => setIsMuted(muted),
       onBufferPercentageChange: (percent) => setBufferPercentage(percent),
       onEnded: () => {
         setIsPlaying(false);
@@ -602,11 +607,14 @@ function AudioPlayer({ audioUrl }: { audioUrl: string }) {
   const handleVolumeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const vol = parseFloat(e.target.value);
-      setVolume(vol);
       trackerRef.current?.setVolume(vol);
     },
     []
   );
+
+  const handleMuteToggle = useCallback(() => {
+    trackerRef.current?.toggleMute();
+  }, []);
 
   const handleSpeedChange = useCallback((speed: number) => {
     setPlaybackRate(speed);
@@ -650,7 +658,7 @@ function AudioPlayer({ audioUrl }: { audioUrl: string }) {
 
       {/* Volume Control */}
       <div>
-        <label>Volume: {volume}%</label>
+        <label>Volume: {volume.toFixed(0)}%</label>
         <input
           type="range"
           min={0}
@@ -658,6 +666,9 @@ function AudioPlayer({ audioUrl }: { audioUrl: string }) {
           value={volume}
           onChange={handleVolumeChange}
         />
+        <button onClick={handleMuteToggle}>
+          {isMuted ? "🔇 Unmute" : "🔊 Mute"}
+        </button>
       </div>
 
       {/* Playback Speed */}
@@ -704,7 +715,7 @@ export default AudioPlayer;
     />
 
     <div>
-      <label>Volume: {{ volume }}%</label>
+      <label>Volume: {{ volume.toFixed(0) }}%</label>
       <input
         type="range"
         :min="0"
@@ -712,6 +723,9 @@ export default AudioPlayer;
         v-model="volume"
         @input="handleVolumeChange"
       />
+      <button @click="handleMuteToggle">
+        {{ isMuted ? "🔇 Unmute" : "🔊 Mute" }}
+      </button>
     </div>
   </div>
 </template>
@@ -729,6 +743,7 @@ const isPlaying = ref(false);
 const currentTime = ref(0);
 const duration = ref(0);
 const volume = ref(100);
+const isMuted = ref(false);
 
 onMounted(() => {
   tracker = new AudioTracker(props.audioUrl, {
@@ -745,6 +760,8 @@ onMounted(() => {
     onPause: () => (isPlaying.value = false),
     onTimeUpdate: (time) => (currentTime.value = time),
     onDurationChange: (dur) => (duration.value = dur),
+    onVolumeChange: (vol) => (volume.value = vol),
+    onMuteChange: (muted) => (isMuted.value = muted),
   });
 });
 
@@ -765,9 +782,12 @@ const handleSeek = (e: Event) => {
   tracker?.seekTo(time);
 };
 
-const handleVolumeChange = (e: Event) => {
-  const vol = parseFloat((e.target as HTMLInputElement).value);
-  tracker?.setVolume(vol);
+const handleVolumeChange = () => {
+  tracker?.setVolume(volume.value);
+};
+
+const handleMuteToggle = () => {
+  tracker?.toggleMute();
 };
 
 const formatTime = (seconds: number) => {
@@ -878,7 +898,7 @@ tracker.init({
 
 ### Media Session API
 
-⚠️ **Progressive Enhancement** - Gracefully degrades on older browsers[3][4][1]
+⚠️ **Progressive Enhancement** - Gracefully degrades on older browsers
 
 | Browser         | Media Session Support |
 | --------------- | --------------------- |
@@ -890,7 +910,7 @@ tracker.init({
 | iOS Safari      | ⚠️ 15+ (partial)      |
 | Android Browser | ✅ 73+                |
 
-> **Note:** On browsers without Media Session support, all core audio functionality works perfectly. You just won't have lock screen controls, media keys, or notification center integration.[2][6][7]
+> **Note:** On browsers without Media Session support, all core audio functionality works perfectly. You just won't have lock screen controls, media keys, or notification center integration.
 
 ---
 
@@ -912,7 +932,7 @@ button.addEventListener("click", () => {
 
 ### Issue: Media Session not showing
 
-**Solution:** Ensure you're providing all required metadata.[3][1]
+**Solution:** Ensure you're providing all required metadata.
 
 ```typescript
 // ❌ Missing artwork

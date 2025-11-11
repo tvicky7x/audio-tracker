@@ -74,16 +74,6 @@ interface AudioTrackerOptions {
 }
 
 /**
- * Volume change event data
- */
-interface VolumeChangeData {
-  /** Current volume (0-100) */
-  volume: number;
-  /** Mute state */
-  muted: boolean;
-}
-
-/**
  * Audio tracker event callbacks
  */
 interface AudioTrackerCallbacks {
@@ -113,8 +103,10 @@ interface AudioTrackerCallbacks {
   onBufferChange?: (bufferedTime: number) => void;
   /** Fired when buffered percentage updates */
   onBufferPercentageChange?: (percentage: number) => void;
-  /** Fired when volume or mute state changes */
-  onVolumeChange?: (data: VolumeChangeData) => void;
+  /** Fired when volume changes */
+  onVolumeChange?: (volume: number) => void;
+  /** Fired when mute state changes */
+  onMuteChange?: (muted: boolean) => void;
   /** Fired when playback rate changes */
   onRateChange?: (rate: number) => void;
   /** Fired on playback errors */
@@ -135,6 +127,7 @@ export default class AudioTracker {
   private mediaSessionEnabled: boolean;
   private duration: number;
   private cleanupFunction: (() => void) | null;
+  private previousMutedState: boolean;
 
   /**
    * Creates a new AudioTracker instance
@@ -194,6 +187,7 @@ export default class AudioTracker {
     this.mediaSessionEnabled = false;
     this.duration = 0;
     this.cleanupFunction = null;
+    this.previousMutedState = this.audio.muted;
   }
 
   /**
@@ -266,10 +260,16 @@ export default class AudioTracker {
 
     /** Event: Volume or mute state changed */
     const handleVolumeChange = (): void => {
-      this.callbacks.onVolumeChange?.({
-        volume: this.audio.volume * 100,
-        muted: this.audio.muted,
-      });
+      const currentMutedState = this.audio.muted;
+
+      // Check if mute state changed
+      if (currentMutedState !== this.previousMutedState) {
+        this.callbacks.onMuteChange?.(currentMutedState);
+        this.previousMutedState = currentMutedState;
+      }
+
+      // Always call volume change with just the volume value
+      this.callbacks.onVolumeChange?.(this.audio.volume * 100);
     };
 
     /** Event: Playback stopped due to buffering */

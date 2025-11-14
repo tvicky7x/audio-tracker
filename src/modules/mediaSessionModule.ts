@@ -1,27 +1,83 @@
-import AudioTracker from "../index"; // Adjust the import path as needed
+/**
+ * Media Session module configuration options
+ */
+interface MediaSessionOptions {
+  title?: string;
+  artist?: string;
+  album?: string;
+  artwork?: MediaImage[];
+}
 
 /**
- * Media Session API module for AudioTracker
- * Enables integration with the Media Session API for metadata and media controls.
- *
- * @param tracker - The AudioTracker instance
- * @returns A cleanup function to unregister Media Session handlers
+ * Extended AudioTracker interface with Media Session module methods
  */
-export function mediaSessionModule(tracker: AudioTracker): () => void {
+interface AudioTrackerWithMediaSession {
+  audio: HTMLAudioElement;
+  options: {
+    mediaSession?: MediaSessionOptions;
+  };
+  play: () => Promise<void>;
+  pause: () => void;
+  forward: (seconds?: number) => void;
+  backward: (seconds?: number) => void;
+  subscribe: (event: string, handler: () => void) => void;
+  unsubscribe: (event: string, handler: () => void) => void;
+  updateMediaSessionMetadata?: (metadata: MediaMetadataInit) => void;
+}
+
+/**
+ * Media Session module for AudioTracker
+ * Integrates with the browser's Media Session API to display playback controls in system UI
+ * @param tracker - AudioTracker instance to attach Media Session functionality
+ * @returns Cleanup function to remove Media Session handlers and metadata
+ * @example
+ * const tracker = new AudioTracker('audio.mp3', {
+ *   mediaSession: {
+ *     title: 'Song Title',
+ *     artist: 'Artist Name',
+ *     album: 'Album Name',
+ *     artwork: [{ src: 'cover.jpg', sizes: '512x512', type: 'image/jpeg' }]
+ *   }
+ * });
+ * tracker.use(mediaSessionModule);
+ */
+export function mediaSessionModule(
+  tracker: AudioTrackerWithMediaSession
+): (() => void) | void {
   if (!("mediaSession" in navigator)) {
-    console.warn("Media Session API not supported");
+    console.warn("MediaSessionModule: Media Session API not supported");
     return () => {};
   }
 
-  // Update metadata initially if provided in tracker options
   if (tracker.options.mediaSession) {
     navigator.mediaSession.metadata = new MediaMetadata(
       tracker.options.mediaSession
     );
   }
 
-  /** Update the Media Session playback state */
-  function updatePlaybackState(state: MediaSessionPlaybackState) {
+  /**
+   * Update Media Session metadata dynamically
+   * @param metadata - New metadata to display in system UI
+   * @example
+   * tracker.updateMediaSessionMetadata({
+   *   title: 'New Song',
+   *   artist: 'New Artist',
+   *   artwork: [{ src: 'new-cover.jpg' }]
+   * });
+   */
+  tracker.updateMediaSessionMetadata = (metadata: MediaMetadataInit): void => {
+    if (!("mediaSession" in navigator)) return;
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata(metadata);
+    } catch (error) {
+      console.warn("Failed to update MediaSession metadata:", error);
+    }
+  };
+
+  /**
+   * Update Media Session playback state
+   */
+  function updatePlaybackState(state: MediaSessionPlaybackState): void {
     try {
       navigator.mediaSession.playbackState = state;
     } catch (error) {
@@ -29,14 +85,16 @@ export function mediaSessionModule(tracker: AudioTracker): () => void {
     }
   }
 
-  /** Update the Media Session position state */
-  function updatePositionState() {
-    if (tracker.getDuration() && !isNaN(tracker.getDuration())) {
+  /**
+   * Update Media Session position state
+   */
+  function updatePositionState(): void {
+    if (tracker.audio.duration && !isNaN(tracker.audio.duration)) {
       try {
-        navigator.mediaSession.setPositionState?.({
-          duration: tracker.getDuration(),
-          playbackRate: tracker.getPlaybackRate(),
-          position: tracker.getCurrentTime(),
+        navigator.mediaSession.setPositionState({
+          duration: tracker.audio.duration,
+          playbackRate: tracker.audio.playbackRate,
+          position: tracker.audio.currentTime,
         });
       } catch (error) {
         console.warn("Failed to update Media Session position:", error);
@@ -44,10 +102,7 @@ export function mediaSessionModule(tracker: AudioTracker): () => void {
     }
   }
 
-  const actions: [
-    MediaSessionAction,
-    (details?: MediaSessionActionDetails) => void | Promise<void>
-  ][] = [
+  const actions: Array<[MediaSessionAction, MediaSessionActionHandler]> = [
     [
       "play",
       async () => {
@@ -64,23 +119,23 @@ export function mediaSessionModule(tracker: AudioTracker): () => void {
     ],
     [
       "seekbackward",
-      (details) => {
-        tracker.backward(details?.seekOffset || 10);
+      (details: MediaSessionActionDetails) => {
+        tracker.backward(details.seekOffset || 10);
       },
     ],
     [
       "seekforward",
-      (details) => {
-        tracker.forward(details?.seekOffset || 10);
+      (details: MediaSessionActionDetails) => {
+        tracker.forward(details.seekOffset || 10);
       },
     ],
     [
       "seekto",
-      (details) => {
-        if (details?.fastSeek && "fastSeek" in tracker.getAudioElement()) {
-          tracker.getAudioElement().fastSeek(details.seekTime!);
+      (details: MediaSessionActionDetails) => {
+        if (details.fastSeek && "fastSeek" in tracker.audio) {
+          (tracker.audio as any).fastSeek(details.seekTime);
         } else {
-          tracker.seekTo(details?.seekTime || 0);
+          tracker.audio.currentTime = details.seekTime ?? 0;
         }
         updatePositionState();
       },
@@ -89,13 +144,13 @@ export function mediaSessionModule(tracker: AudioTracker): () => void {
       "stop",
       () => {
         tracker.pause();
-        tracker.seekTo(0);
+        tracker.audio.currentTime = 0;
         updatePlaybackState("paused");
       },
     ],
   ];
 
-  // Register Media Session action handlers
+  // Register handlers
   for (const [action, handler] of actions) {
     try {
       navigator.mediaSession.setActionHandler(action, handler);
@@ -104,24 +159,24 @@ export function mediaSessionModule(tracker: AudioTracker): () => void {
     }
   }
 
-  // Handlers for updating position and playback state on events
-  const handleEnded = () => {
+  // Handlers for tracking playback and position state updates
+  const handleEnded = (): void => {
     updatePositionState();
     updatePlaybackState("paused");
   };
 
-  const handlePlay = () => {
+  const handlePlay = (): void => {
     updatePositionState();
     updatePlaybackState("playing");
   };
 
-  const handlePause = () => {
+  const handlePause = (): void => {
     updatePositionState();
     updatePlaybackState("paused");
   };
 
-  // Events to subscribe to on tracker for syncing Media Session state
-  const subscriptions: [keyof HTMLMediaElementEventMap, () => void][] = [
+  // Store subscriptions to unsubscribe later
+  const subscriptions: Array<[string, () => void]> = [
     ["loadedmetadata", updatePositionState],
     ["seeked", updatePositionState],
     ["ratechange", updatePositionState],
@@ -131,13 +186,12 @@ export function mediaSessionModule(tracker: AudioTracker): () => void {
     ["pause", handlePause],
   ];
 
-  // Subscribe event handlers
   subscriptions.forEach(([event, handler]) =>
     tracker.subscribe(event, handler)
   );
 
-  // Return cleanup function to unregister handlers and reset metadata
-  return () => {
+  // Return cleanup function to clear handlers and metadata
+  return (): void => {
     actions.forEach(([action]) => {
       try {
         navigator.mediaSession.setActionHandler(action, null);

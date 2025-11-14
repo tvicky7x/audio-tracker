@@ -1,26 +1,29 @@
 export { mediaSessionModule } from "./modules/mediaSessionModule";
+// export { timestampModule } from "./modules/timestampModule";
 
-type AudioTrackerOptions = {
+/**
+ * Configuration options for AudioTracker initialization
+ */
+interface AudioTrackerOptions {
   preload?: "none" | "metadata" | "auto";
   loop?: boolean;
   muted?: boolean;
   autoplay?: boolean;
-  crossOrigin?: string;
+  crossOrigin?: "anonymous" | "use-credentials" | null;
   volume?: number;
-  /**
-   * Metadata for browser Media Session API
-   */
-  mediaSession?: MediaMetadataInit;
-};
+}
 
-type Callbacks = {
+/**
+ * Callback functions for audio events
+ */
+interface AudioCallbacks {
   onPlay?: () => void;
   onPause?: () => void;
   onEnded?: () => void;
   onTimeUpdate?: (currentTime: number) => void;
-  onRateChange?: (playbackRate: number) => void;
+  onRateChange?: (rate: number) => void;
   onVolumeChange?: (volume: number) => void;
-  onMuteChange?: (muted: boolean) => void;
+  onMuteChange?: (isMuted: boolean) => void;
   onBufferChange?: (bufferedTime: number) => void;
   onBufferPercentageChange?: (percentage: number) => void;
   onPlaying?: () => void;
@@ -31,26 +34,30 @@ type Callbacks = {
   onStalled?: () => void;
   onError?: (error: MediaError | null) => void;
   onDurationChange?: (duration: number) => void;
-};
+}
 
+/**
+ * Type for module functions that can extend AudioTracker functionality
+ */
+type AudioModule = (tracker: AudioTracker) => void | (() => void);
+
+/**
+ * A headless JavaScript library that gives you full control over web audio with advanced tracking and control features.
+ * Provides a clean API for audio manipulation, event handling, and modular extensions.
+ */
 export default class AudioTracker {
   private audio: HTMLAudioElement;
   private isExternalAudio: boolean;
-  public options: AudioTrackerOptions;
+  private options: AudioTrackerOptions;
   private duration: number;
   private previousMutedState: boolean;
-  private callbacks: Callbacks;
-  private subscribers: { [eventName: string]: Array<(event: Event) => void> };
-  private boundHandlers: { [eventName: string]: (event: Event) => void };
+  private callbacks: AudioCallbacks;
+  private subscribers: Record<string, Array<(event: Event) => void>>;
+  private boundHandlers: Record<string, (event: Event) => void>;
   private cleanupFunctions: Array<() => void>;
 
-  /**
-   * Creates an instance of AudioTracker.
-   * @param audioSource - Either an HTMLAudioElement or a string URL for the audio source
-   * @param options - Optional settings such as loop, volume, preload, and autoplay
-   */
   constructor(
-    audioSource: HTMLAudioElement | string,
+    audioSource: string | HTMLAudioElement,
     options: AudioTrackerOptions = {}
   ) {
     if (audioSource instanceof HTMLAudioElement) {
@@ -78,7 +85,6 @@ export default class AudioTracker {
       }
 
       if (typeof options.volume === "number") {
-        // Ensure volume between 0-100 then convert to 0-1 range
         this.audio.volume = Math.min(Math.max(options.volume, 0), 100) / 100;
       }
     }
@@ -91,16 +97,18 @@ export default class AudioTracker {
     this.cleanupFunctions = [];
   }
 
-  // ===============================
-  // Event system methods
-  // ===============================
+  // ============================================
+  // Event System
+  // ============================================
 
   /**
-   * Subscribe to an audio event with a callback.
-   * @param eventName - The name of the audio event to listen for
-   * @param callback - The callback function to execute when the event fires
+   * Subscribe to audio element DOM events
+   * @param eventName - Name of the audio event (e.g., 'play', 'pause', 'timeupdate')
+   * @param callback - Function to execute when event fires
+   * @example
+   * tracker.subscribe('play', () => console.log('Audio started playing'));
    */
-  subscribe(eventName: string, callback: (event: Event) => void): void {
+  public subscribe(eventName: string, callback: (event: Event) => void): void {
     if (!this.subscribers[eventName]) {
       this.subscribers[eventName] = [];
       this._attachDOMListener(eventName);
@@ -109,11 +117,18 @@ export default class AudioTracker {
   }
 
   /**
-   * Unsubscribe a callback from an audio event.
-   * @param eventName - The event name to stop listening to
-   * @param callback - The callback function to remove
+   * Unsubscribe from audio element DOM events
+   * @param eventName - Name of the audio event
+   * @param callback - The specific callback function to remove
+   * @example
+   * const handler = () => console.log('Playing');
+   * tracker.subscribe('play', handler);
+   * tracker.unsubscribe('play', handler);
    */
-  unsubscribe(eventName: string, callback: (event: Event) => void): void {
+  public unsubscribe(
+    eventName: string,
+    callback: (event: Event) => void
+  ): void {
     if (!this.subscribers[eventName]) return;
     this.subscribers[eventName] = this.subscribers[eventName].filter(
       (cb) => cb !== callback
@@ -127,7 +142,6 @@ export default class AudioTracker {
 
   private _attachDOMListener(eventName: string): void {
     if (this.boundHandlers[eventName]) {
-      // Listener already attached
       return;
     }
     const handler = (event: Event) => {
@@ -146,37 +160,48 @@ export default class AudioTracker {
     }
   }
 
-  // ===============================
+  // ============================================
   // Initialization with callbacks
-  // ===============================
+  // ============================================
 
   /**
-   * Initializes event callbacks for audio events.
-   * @param callbacks - An object of callback functions for audio event hooks
-   * @returns The AudioTracker instance (for chaining)
+   * Initialize AudioTracker with callback functions for various audio events
+   * @param callbacks - Object containing callback functions for audio events
+   * @returns The AudioTracker instance for method chaining
+   * @example
+   * tracker.init({
+   *   onPlay: () => console.log('Playing'),
+   *   onTimeUpdate: (time) => console.log(`Current time: ${time}`),
+   *   onEnded: () => console.log('Playback finished')
+   * });
    */
-  init(callbacks: Callbacks = {}): this {
+  public init(callbacks: AudioCallbacks = {}): this {
     this.callbacks = { ...this.callbacks, ...callbacks };
 
     if (callbacks.onPlay) {
       this.subscribe("play", () => this.callbacks.onPlay?.());
     }
+
     if (callbacks.onPause) {
       this.subscribe("pause", () => this.callbacks.onPause?.());
     }
+
     if (callbacks.onEnded) {
       this.subscribe("ended", () => this.callbacks.onEnded?.());
     }
+
     if (callbacks.onTimeUpdate) {
       this.subscribe("timeupdate", () => {
         this.callbacks.onTimeUpdate?.(this.audio.currentTime);
       });
     }
+
     if (callbacks.onRateChange) {
       this.subscribe("ratechange", () => {
         this.callbacks.onRateChange?.(this.audio.playbackRate);
       });
     }
+
     if (callbacks.onVolumeChange || callbacks.onMuteChange) {
       this.subscribe("volumechange", () => {
         const currentMutedState = this.audio.muted;
@@ -189,31 +214,39 @@ export default class AudioTracker {
         this.callbacks.onVolumeChange?.(this.audio.volume * 100);
       });
     }
+
     if (callbacks.onBufferChange || callbacks.onBufferPercentageChange) {
       this.subscribe("progress", () => {
         this.updateBuffer();
       });
     }
+
     if (callbacks.onPlaying) {
       this.subscribe("playing", () => this.callbacks.onPlaying?.());
     }
+
     if (callbacks.onSeeking) {
       this.subscribe("seeking", () => {
         this.callbacks.onSeeking?.(this.audio.currentTime);
       });
     }
+
     if (callbacks.onLoadStart) {
       this.subscribe("loadstart", () => this.callbacks.onLoadStart?.());
     }
+
     if (callbacks.onCanPlay) {
       this.subscribe("canplay", () => this.callbacks.onCanPlay?.());
     }
+
     if (callbacks.onWaiting) {
       this.subscribe("waiting", () => this.callbacks.onWaiting?.());
     }
+
     if (callbacks.onStalled) {
       this.subscribe("stalled", () => this.callbacks.onStalled?.());
     }
+
     if (callbacks.onError) {
       this.subscribe("error", () => this.callbacks.onError?.(this.audio.error));
     }
@@ -237,10 +270,7 @@ export default class AudioTracker {
     return this;
   }
 
-  /**
-   * Updates buffer status and triggers buffer callbacks.
-   */
-  updateBuffer(): void {
+  private updateBuffer(): void {
     if (this.audio.buffered.length > 0) {
       const bufferedTime = this.audio.buffered.end(
         this.audio.buffered.length - 1
@@ -254,19 +284,19 @@ export default class AudioTracker {
     }
   }
 
-  // ===============================
-  // Module system
-  // ===============================
+  // ============================================
+  // Module System
+  // ============================================
 
   /**
-   * Uses an external module factory with AudioTracker instance.
-   * @param moduleFactory - Function accepting AudioTracker and returning optional cleanup function
-   * @returns The AudioTracker instance (for chaining)
+   * Extend AudioTracker functionality with a module
+   * @param module - Function that receives the tracker instance and returns an optional cleanup function
+   * @returns The AudioTracker instance for method chaining
+   * @example
+   * tracker.use(mediaSessionModule).use(timestampModule);
    */
-  use(
-    moduleFactory: (audioTracker: AudioTracker) => void | (() => void)
-  ): this {
-    const cleanup = moduleFactory(this);
+  public use(module: AudioModule): this {
+    const cleanup = module(this);
 
     if (typeof cleanup === "function") {
       this.cleanupFunctions.push(cleanup);
@@ -275,231 +305,294 @@ export default class AudioTracker {
     return this;
   }
 
-  // ===============================
-  // Audio control methods
-  // ===============================
+  // ============================================
+  // Controls
+  // ============================================
 
   /**
-   * Plays the audio.
-   * @returns A Promise that resolves when playback starts
+   * Start audio playback
+   * @returns Promise that resolves when playback begins
+   * @example
+   * await tracker.play();
    */
-  play(): Promise<void> {
-    return this.audio.play();
+  public play(): Promise<void> {
+    return this.audio.play().catch((e) => {
+      console.warn("Playback failed:", e);
+    });
   }
 
   /**
-   * Pauses the audio.
+   * Pause audio playback
+   * @example
+   * tracker.pause();
    */
-  pause(): void {
+  public pause(): void {
     this.audio.pause();
   }
 
   /**
-   * Seeks audio to a specified time.
-   * @param time - Time in seconds to seek to
+   * Seek to a specific time position in the audio
+   * @param time - Time position in seconds
+   * @example
+   * tracker.seekTo(30); // Jump to 30 seconds
    */
-  seekTo(time: number): void {
-    this.audio.currentTime = Math.max(0, Math.min(time, this.duration));
+  public seekTo(time: number): void {
+    const duration = this.duration || this.audio.duration || 0;
+    this.audio.currentTime = Math.max(0, Math.min(time, duration));
   }
 
   /**
-   * Moves forward in the audio by given seconds.
-   * @param seconds - Seconds to move forward (default: 10)
+   * Skip forward by a specified number of seconds
+   * @param seconds - Number of seconds to skip forward (default: 10)
+   * @example
+   * tracker.forward(15); // Skip forward 15 seconds
    */
-  forward(seconds = 10): void {
-    this.audio.currentTime = Math.min(
-      this.audio.currentTime + seconds,
-      this.duration
-    );
+  public forward(seconds: number = 10): void {
+    const newTime = Math.min(this.audio.currentTime + seconds, this.duration);
+    this.audio.currentTime = newTime;
   }
 
   /**
-   * Moves backward in the audio by given seconds.
-   * @param seconds - Seconds to move backward (default: 10)
+   * Skip backward by a specified number of seconds
+   * @param seconds - Number of seconds to skip backward (default: 10)
+   * @example
+   * tracker.backward(15); // Skip back 15 seconds
    */
-  backward(seconds = 10): void {
-    this.audio.currentTime = Math.max(this.audio.currentTime - seconds, 0);
+  public backward(seconds: number = 10): void {
+    const newTime = Math.max(this.audio.currentTime - seconds, 0);
+    this.audio.currentTime = newTime;
   }
 
   /**
-   * Sets the audio volume.
-   * @param value - Volume value from 0 to 100
+   * Set the audio volume level
+   * @param value - Volume level from 0 to 100
+   * @example
+   * tracker.setVolume(75); // Set volume to 75%
    */
-  setVolume(value: number): void {
-    this.audio.volume = Math.max(0, Math.min(value, 100)) / 100;
+  public setVolume(value: number): void {
+    if (typeof value === "number") {
+      const clampedValue = Math.max(0, Math.min(value, 100));
+      this.audio.volume = clampedValue / 100;
+    }
   }
 
   /**
-   * Gets the current audio volume.
-   * @returns Volume from 0 to 100
+   * Get the current volume level
+   * @returns Current volume as a percentage (0-100)
+   * @example
+   * const volume = tracker.getVolume(); // Returns 75
    */
-  getVolume(): number {
+  public getVolume(): number {
     return this.audio.volume * 100;
   }
 
   /**
-   * Sets muted state.
-   * @param muted - true to mute, false to unmute
+   * Set the muted state of the audio
+   * @param muted - True to mute, false to unmute
+   * @example
+   * tracker.setMuted(true); // Mute audio
    */
-  setMuted(muted: boolean): void {
+  public setMuted(muted: boolean): void {
     this.audio.muted = Boolean(muted);
   }
 
   /**
-   * Toggles muted state.
-   * @returns Current muted state after toggling
+   * Toggle the muted state of the audio
+   * @returns The new muted state (true if now muted, false if unmuted)
+   * @example
+   * const isMuted = tracker.toggleMute(); // Toggle and get new state
    */
-  toggleMute(): boolean {
+  public toggleMute(): boolean {
     this.audio.muted = !this.audio.muted;
+    this.callbacks.onMuteChange?.(this.audio.muted);
+
     return this.audio.muted;
   }
 
   /**
-   * Checks if audio is muted.
-   * @returns true if muted, otherwise false
+   * Check if audio is currently muted
+   * @returns True if muted, false otherwise
+   * @example
+   * if (tracker.isMuted()) console.log('Audio is muted');
    */
-  isMuted(): boolean {
+  public isMuted(): boolean {
     return this.audio.muted;
   }
 
   /**
-   * Sets playback speed rate.
-   * @param rate - Playback rate between 0.25 and 4
+   * Set the playback speed rate
+   * @param rate - Playback rate (0.5 = half speed, 1.0 = normal, 2.0 = double speed)
+   * @example
+   * tracker.setPlaybackRate(1.5); // Play at 1.5x speed
    */
-  setPlaybackRate(rate: number): void {
-    this.audio.playbackRate = Math.max(0.25, Math.min(rate, 4));
+  public setPlaybackRate(rate: number): void {
+    this.audio.playbackRate = rate;
   }
 
   /**
-   * Gets current playback rate.
-   * @returns Playback speed rate
+   * Get the current playback speed rate
+   * @returns Current playback rate
+   * @example
+   * const rate = tracker.getPlaybackRate(); // Returns 1.5
    */
-  getPlaybackRate(): number {
+  public getPlaybackRate(): number {
     return this.audio.playbackRate;
   }
 
   /**
-   * Sets looping on/off.
-   * @param loop - true to loop, false to disable loop
+   * Enable or disable audio looping
+   * @param loop - True to enable loop, false to disable
+   * @example
+   * tracker.setLoop(true); // Enable continuous looping
    */
-  setLoop(loop: boolean): void {
+  public setLoop(loop: boolean): void {
     this.audio.loop = Boolean(loop);
   }
 
   /**
-   * Checks if looping is enabled.
-   * @returns true if looping, else false
+   * Check if audio looping is enabled
+   * @returns True if looping is enabled
+   * @example
+   * if (tracker.isLooping()) console.log('Loop is enabled');
    */
-  isLooping(): boolean {
+  public isLooping(): boolean {
     return this.audio.loop;
   }
 
   /**
-   * Sets autoplay on/off.
-   * @param autoplay - true to autoplay, else false
+   * Enable or disable autoplay
+   * @param autoplay - True to enable autoplay, false to disable
+   * @example
+   * tracker.setAutoplay(true); // Enable autoplay
    */
-  setAutoplay(autoplay: boolean): void {
+  public setAutoplay(autoplay: boolean): void {
     this.audio.autoplay = Boolean(autoplay);
   }
 
   /**
-   * Gets current autoplay setting.
-   * @returns true if autoplay enabled, else false
+   * Check if autoplay is enabled
+   * @returns True if autoplay is enabled
+   * @example
+   * const hasAutoplay = tracker.getAutoplay();
    */
-  getAutoplay(): boolean {
+  public getAutoplay(): boolean {
     return this.audio.autoplay;
   }
 
   /**
-   * Sets crossOrigin attribute.
-   * @param crossOrigin - string value for crossOrigin
+   * Set CORS settings for the audio element
+   * @param crossOrigin - CORS setting ('anonymous', 'use-credentials', or null)
+   * @example
+   * tracker.setCrossOrigin('anonymous');
    */
-  setCrossOrigin(crossOrigin: string): void {
+  public setCrossOrigin(
+    crossOrigin: "anonymous" | "use-credentials" | null
+  ): void {
     this.audio.crossOrigin = crossOrigin;
   }
 
   /**
-   * Gets crossOrigin attribute value.
-   * @returns crossOrigin string or null
+   * Get the current CORS setting
+   * @returns Current crossOrigin value
+   * @example
+   * const cors = tracker.getCrossOrigin();
    */
-  getCrossOrigin(): string | null {
+  public getCrossOrigin(): string | null {
     return this.audio.crossOrigin;
   }
 
   /**
-   * Sets preload attribute.
-   * @param preload - string value for preload (e.g. "auto", "metadata")
+   * Set the preload behavior for the audio
+   * @param preload - Preload setting ('none', 'metadata', or 'auto')
+   * @example
+   * tracker.setPreload('metadata'); // Preload only metadata
    */
-  setPreload(preload: "none" | "metadata" | "auto"): void {
+  public setPreload(preload: "none" | "metadata" | "auto"): void {
     this.audio.preload = preload;
   }
 
   /**
-   * Gets current preload setting.
-   * @returns preload string
+   * Get the current preload setting
+   * @returns Current preload value
+   * @example
+   * const preload = tracker.getPreload();
    */
-  getPreload(): string {
+  public getPreload(): string {
     return this.audio.preload;
   }
 
   /**
-   * Gets readyState of the audio element.
-   * @returns readyState number
+   * Get the ready state of the audio element
+   * @returns Ready state (0: HAVE_NOTHING, 1: HAVE_METADATA, 2: HAVE_CURRENT_DATA, 3: HAVE_FUTURE_DATA, 4: HAVE_ENOUGH_DATA)
+   * @example
+   * const state = tracker.getReadyState();
    */
-  getReadyState(): number {
+  public getReadyState(): number {
     return this.audio.readyState;
   }
 
   /**
-   * Gets networkState of the audio element.
-   * @returns networkState number
+   * Get the network state of the audio element
+   * @returns Network state (0: NETWORK_EMPTY, 1: NETWORK_IDLE, 2: NETWORK_LOADING, 3: NETWORK_NO_SOURCE)
+   * @example
+   * const networkState = tracker.getNetworkState();
    */
-  getNetworkState(): number {
+  public getNetworkState(): number {
     return this.audio.networkState;
   }
 
   /**
-   * Checks if audio is currently playing.
-   * @returns true if playing, else false
+   * Check if audio is currently playing
+   * @returns True if audio is playing, false otherwise
+   * @example
+   * if (tracker.isPlaying()) console.log('Audio is playing');
    */
-  isPlaying(): boolean {
+  public isPlaying(): boolean {
     return !this.audio.paused && !this.audio.ended && this.audio.readyState > 2;
   }
 
   /**
-   * Gets total duration of the audio.
-   * @returns duration in seconds
+   * Get the total duration of the audio
+   * @returns Duration in seconds
+   * @example
+   * const duration = tracker.getDuration(); // Returns 180 (3 minutes)
    */
-  getDuration(): number {
+  public getDuration(): number {
     return this.duration;
   }
 
   /**
-   * Gets current playback time.
-   * @returns current time in seconds
+   * Get the current playback time position
+   * @returns Current time in seconds
+   * @example
+   * const currentTime = tracker.getCurrentTime(); // Returns 45.5
    */
-  getCurrentTime(): number {
+  public getCurrentTime(): number {
     return this.audio.currentTime;
   }
 
   /**
-   * Gets time remaining until audio ends.
-   * @returns seconds remaining
+   * Get the remaining time until audio ends
+   * @returns Remaining time in seconds
+   * @example
+   * const remaining = tracker.getTimeRemaining(); // Returns 134.5
    */
-  getTimeRemaining(): number {
+  public getTimeRemaining(): number {
     return Math.max(0, this.duration - this.audio.currentTime);
   }
 
-  // ===============================
+  // ============================================
   // Utilities
-  // ===============================
+  // ============================================
 
   /**
-   * Formats seconds to M:SS string format.
-   * @param seconds - time in seconds
-   * @returns formatted time string (e.g. "2:04")
+   * Format seconds into MM:SS format
+   * @param seconds - Time in seconds to format
+   * @returns Formatted time string (e.g., "3:45")
+   * @example
+   * const formatted = tracker.formatTime(225); // Returns "3:45"
    */
-  formatTime(seconds: number | undefined): string {
+  public formatTime(seconds: number): string {
     if (!seconds || isNaN(seconds)) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -507,34 +600,41 @@ export default class AudioTracker {
   }
 
   /**
-   * Returns the underlying HTMLAudioElement.
-   * @returns the HTMLAudioElement instance
+   * Get direct access to the underlying HTMLAudioElement
+   * @returns The HTMLAudioElement instance
+   * @example
+   * const audioElement = tracker.getAudioElement();
+   * audioElement.addEventListener('canplaythrough', callback);
    */
-  getAudioElement(): HTMLAudioElement {
+  public getAudioElement(): HTMLAudioElement {
     return this.audio;
   }
 
-  // ===============================
+  // ============================================
   // Cleanup
-  // ===============================
+  // ============================================
 
   /**
-   * Cleanup and destroy AudioTracker instance.
+   * Clean up all resources and event listeners. Call this when done using the tracker.
+   * @example
+   * tracker.destroy(); // Clean up before removing component
    */
-  destroy(): void {
-    if (this.isExternalAudio) {
-      this.audio.pause();
+  public destroy(): void {
+    this.cleanupFunctions.forEach((fn) => fn());
+    this.cleanupFunctions = [];
+
+    Object.keys(this.boundHandlers).forEach((eventName) => {
+      this._detachDOMListener(eventName);
+    });
+
+    this.audio.pause();
+
+    if (!this.isExternalAudio) {
       this.audio.src = "";
       this.audio.load();
-    } else {
-      this.cleanupFunctions.forEach((fn) => fn());
-      this.cleanupFunctions = [];
-      Object.keys(this.boundHandlers).forEach((eventName) => {
-        this._detachDOMListener(eventName);
-      });
-
-      this.subscribers = {};
-      this.callbacks = {};
     }
+
+    this.subscribers = {};
+    this.callbacks = {};
   }
 }

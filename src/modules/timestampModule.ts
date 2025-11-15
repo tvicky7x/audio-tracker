@@ -3,7 +3,7 @@
  */
 interface Speaker {
   id: string;
-  name: string;
+  name?: string;
 }
 
 /**
@@ -26,6 +26,7 @@ interface Segment {
   end: number;
   order?: number;
   speaker?: Speaker | null;
+  label?: string;
   text?: string;
   subSegments?: SubSegment[];
 }
@@ -49,6 +50,7 @@ interface AudioTrackerWithTimestamp {
     onSegmentChange?: (segment: Segment | null) => void;
     onSubSegmentChange?: (subSegment: SubSegment | null) => void;
     onSpeakerChange?: (speaker: Speaker | null) => void;
+    onLabelChange?: (label: string | null) => void;
   };
   getCurrentTime: () => number;
   getDuration: () => number;
@@ -61,6 +63,8 @@ interface AudioTrackerWithTimestamp {
   getCurrentSubSegment?: () => SubSegment | null;
   getCurrentSpeaker?: () => Speaker | null;
   seekToSegmentById?: (id: string) => void;
+  seekToSegmentByLabel?: (label: string) => void;
+  seekToSegmentByOrder?: (order: number) => void;
   seekToSubSegmentById?: (id: string) => void;
 }
 
@@ -81,10 +85,11 @@ interface AudioTrackerWithTimestamp {
  *       end: 30,
  *       order: 1,
  *       speaker: { id: 'sp1', name: 'Speaker 1' },
- *       text: 'Intro',
+ *       label: 'Intro',
+ *       text: 'hi everyone'
  *       subSegments: [
- *         { id: 'sub1', start: 0, end: 10, order: 1, text: 'Part 1' },
- *         { id: 'sub2', start: 10, end: 30, order: 2, text: 'Part 2' },
+ *         { id: 'sub1', start: 0, end: 10, order: 1, text: 'hi' },
+ *         { id: 'sub2', start: 10, end: 30, order: 2, text: 'everyone' },
  *       ],
  *     },
  *     {
@@ -92,7 +97,8 @@ interface AudioTrackerWithTimestamp {
  *       start: 30,
  *       end: 60,
  *       order: 2,
- *       text: 'Main section',
+ *       label: 'Main section',
+ *       text: 'welcome to todays podcast...'
  *     },
  *   ],
  *   gapBehavior: 'persist-previous', // Optional gap behavior
@@ -105,8 +111,9 @@ export function timestampModule(
   tracker: AudioTrackerWithTimestamp
 ): () => void {
   const segments = Array.isArray(tracker.options?.timestamp?.segments)
-    ? tracker.options.timestamp.segments.map((seg) => ({
+    ? tracker.options.timestamp.segments.map((seg, index) => ({
         ...seg,
+        order: seg.order ?? index + 1,
         subSegments: Array.isArray(seg.subSegments) ? seg.subSegments : [],
       }))
     : [];
@@ -144,6 +151,7 @@ export function timestampModule(
   let lastValidSegmentIndex = -1;
   let lastReportedSegment: Segment | null = null;
   let lastReportedSubSegment: SubSegment | null = null;
+  let lastReportedLabel: string | null = null;
   let isInitialized = false;
 
   function findSegmentIndexByTime(time: number): number {
@@ -263,9 +271,19 @@ export function timestampModule(
         lastReportedSegment = segmentToReport;
 
         const newSpeaker = segmentToReport.speaker ?? null;
-        if (currentSpeaker?.id !== newSpeaker?.id) {
+        const speakerChanged =
+          (currentSpeaker === null && newSpeaker !== null) ||
+          (currentSpeaker !== null && newSpeaker === null) ||
+          currentSpeaker?.id !== newSpeaker?.id;
+        if (speakerChanged) {
           currentSpeaker = newSpeaker;
           tracker.callbacks.onSpeakerChange?.(currentSpeaker);
+        }
+
+        const newLabel = segmentToReport.label ?? null;
+        if (lastReportedLabel !== newLabel) {
+          lastReportedLabel = newLabel;
+          tracker.callbacks.onLabelChange?.(newLabel);
         }
       } else {
         tracker.callbacks.onSegmentChange?.(null);
@@ -274,6 +292,11 @@ export function timestampModule(
         if (currentSpeaker !== null) {
           currentSpeaker = null;
           tracker.callbacks.onSpeakerChange?.(null);
+        }
+
+        if (lastReportedLabel !== null) {
+          lastReportedLabel = null;
+          tracker.callbacks.onLabelChange?.(null);
         }
       }
     }
@@ -351,6 +374,26 @@ export function timestampModule(
   tracker.seekToSegmentById = (id: string) => {
     if (!id) return;
     const segment = validatedSegments.find((seg) => seg.id === id);
+    if (segment?.start != null) {
+      const duration = tracker.getDuration();
+      const seekTime = Math.min(Math.max(segment.start, 0), duration);
+      tracker.seekTo(seekTime);
+    }
+  };
+
+  tracker.seekToSegmentByLabel = (label: string) => {
+    if (!label) return;
+    const segment = validatedSegments.find((seg) => seg.label === label);
+    if (segment?.start != null) {
+      const duration = tracker.getDuration();
+      const seekTime = Math.min(Math.max(segment.start, 0), duration);
+      tracker.seekTo(seekTime);
+    }
+  };
+
+  tracker.seekToSegmentByOrder = (order: number) => {
+    if (typeof order !== "number") return;
+    const segment = validatedSegments.find((seg) => seg.order === order);
     if (segment?.start != null) {
       const duration = tracker.getDuration();
       const seekTime = Math.min(Math.max(segment.start, 0), duration);

@@ -1,7 +1,8 @@
 export function timestampModule(tracker) {
   const segments = Array.isArray(tracker.options?.timestamp?.segments)
-    ? tracker.options.timestamp.segments.map((seg) => ({
+    ? tracker.options.timestamp.segments.map((seg, index) => ({
         ...seg,
+        order: seg.order ?? index + 1,
         subSegments: Array.isArray(seg.subSegments) ? seg.subSegments : [],
       }))
     : [];
@@ -39,6 +40,7 @@ export function timestampModule(tracker) {
   let lastValidSegmentIndex = -1;
   let lastReportedSegment = null;
   let lastReportedSubSegment = null;
+  let lastReportedLabel = null;
   let isInitialized = false;
 
   // Find segment index by playback time with boundary tolerance
@@ -56,7 +58,7 @@ export function timestampModule(tracker) {
     if (typeof time !== "number" || isNaN(time)) return -1;
 
     return mainSegment.subSegments.findIndex(
-      (seg) => time >= seg.start && time < seg.end,
+      (seg) => time >= seg.start && time < seg.end
     );
   }
 
@@ -148,7 +150,7 @@ export function timestampModule(tracker) {
     const newSegmentIndex = findSegmentIndexByTime(currentTime);
     const segmentToReport = getSegmentWithGapBehavior(
       newSegmentIndex,
-      currentTime,
+      currentTime
     );
 
     const segmentChanged =
@@ -172,6 +174,12 @@ export function timestampModule(tracker) {
           currentSpeaker = newSpeaker;
           tracker.callbacks.onSpeakerChange?.(currentSpeaker);
         }
+
+        const newLabel = segmentToReport.label ?? null;
+        if (lastReportedLabel !== newLabel) {
+          lastReportedLabel = newLabel;
+          tracker.callbacks.onLabelChange?.(newLabel);
+        }
       } else {
         tracker.callbacks.onSegmentChange?.(null);
         lastReportedSegment = null;
@@ -179,6 +187,11 @@ export function timestampModule(tracker) {
         if (currentSpeaker !== null) {
           currentSpeaker = null;
           tracker.callbacks.onSpeakerChange?.(null);
+        }
+
+        if (lastReportedLabel !== null) {
+          lastReportedLabel = null;
+          tracker.callbacks.onLabelChange?.(null);
         }
       }
     }
@@ -189,7 +202,7 @@ export function timestampModule(tracker) {
       const currentSegment = validatedSegments[currentSegmentIndex];
       const newSubSegmentIndex = findSubSegmentIndexByTime(
         currentSegment,
-        currentTime,
+        currentTime
       );
 
       if (newSubSegmentIndex !== currentSubSegmentIndex) {
@@ -254,10 +267,29 @@ export function timestampModule(tracker) {
     return currentSeg?.speaker || null;
   };
 
-  // Seek methods with validation
   tracker.seekToSegmentById = (id) => {
     if (!id) return;
     const segment = validatedSegments.find((seg) => seg.id === id);
+    if (segment?.start != null) {
+      const duration = tracker.getDuration();
+      const seekTime = Math.min(Math.max(segment.start, 0), duration);
+      tracker.seekTo(seekTime);
+    }
+  };
+
+  tracker.seekToSegmentByLabel = (label) => {
+    if (!label) return;
+    const segment = validatedSegments.find((seg) => seg.label === label);
+    if (segment?.start != null) {
+      const duration = tracker.getDuration();
+      const seekTime = Math.min(Math.max(segment.start, 0), duration);
+      tracker.seekTo(seekTime);
+    }
+  };
+
+  tracker.seekToSegmentByOrder = (order) => {
+    if (typeof order !== "number") return;
+    const segment = validatedSegments.find((seg) => seg.order === order);
     if (segment?.start != null) {
       const duration = tracker.getDuration();
       const seekTime = Math.min(Math.max(segment.start, 0), duration);

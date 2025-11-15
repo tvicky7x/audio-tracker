@@ -150,6 +150,7 @@ All methods available on the AudioTracker instance.
 | **Playback Controls**   |
 | `play`                  | none                                    | `Promise<void>`    | Start audio playback                     |
 | `pause`                 | none                                    | `void`             | Pause audio playback                     |
+| `togglePlay`            | none                                    | `Promise<void>`    | Toggle between play and pause states     |
 | `seekTo`                | `time: number`                          | `void`             | Seek to specific time in seconds         |
 | `forward`               | `seconds?: number`                      | `void`             | Skip forward (default: 10 seconds)       |
 | `backward`              | `seconds?: number`                      | `void`             | Skip backward (default: 10 seconds)      |
@@ -195,6 +196,7 @@ tracker.use(mediaSessionModule);
 // Playback Controls
 await tracker.play();
 tracker.pause();
+await tracker.togglePlay();
 tracker.seekTo(45);
 tracker.forward(30);
 tracker.backward(15);
@@ -411,12 +413,8 @@ function AudioPlayer({ audioUrl }: { audioUrl: string }) {
     return () => trackerRef.current?.destroy();
   }, [audioUrl]);
 
-  const handlePlayPause = () => {
-    if (isPlaying) {
-      trackerRef.current?.pause();
-    } else {
-      trackerRef.current?.play();
-    }
+  const handlePlayPause = async () => {
+    await trackerRef.current?.togglePlay();
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -497,12 +495,8 @@ onMounted(() => {
 
 onUnmounted(() => tracker?.destroy());
 
-const togglePlayPause = () => {
-  if (isPlaying.value) {
-    tracker?.pause();
-  } else {
-    tracker?.play();
-  }
+const togglePlayPause = async () => {
+  await tracker?.togglePlay();
 };
 
 const handleSeek = (e: Event) => {

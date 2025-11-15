@@ -1,5 +1,5 @@
 export { mediaSessionModule } from "./modules/mediaSessionModule";
-// export { timestampModule } from "./modules/timestampModule";
+export { timestampModule } from "./modules/timestampModule";
 
 /**
  * Configuration options for AudioTracker initialization

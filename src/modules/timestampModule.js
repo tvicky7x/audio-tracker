@@ -3,7 +3,6 @@ export function timestampModule(tracker) {
   const segments = Array.isArray(tracker.options?.timestamp?.segments)
     ? tracker.options.timestamp.segments.map((seg, index) => ({
         ...seg,
-        order: seg.order ?? index + 1,
         subSegments: Array.isArray(seg.subSegments) ? seg.subSegments : [],
       }))
     : [];

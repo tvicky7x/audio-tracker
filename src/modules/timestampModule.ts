@@ -13,8 +13,8 @@ interface SubSegment {
   id: string;
   start: number;
   end: number;
-  order?: number;
-  text: string;
+  order: number;
+  text?: string;
 }
 
 /**
@@ -24,10 +24,10 @@ interface Segment {
   id: string;
   start: number;
   end: number;
-  order?: number;
+  order: number;
   speaker?: Speaker | null;
   label?: string;
-  text: string;
+  text?: string;
   subSegments?: SubSegment[];
 }
 
@@ -129,7 +129,6 @@ export function timestampModule(
   )
     ? tracker.options.timestamp.segments.map((seg, index) => ({
         ...seg,
-        order: seg.order ?? index + 1,
         subSegments: Array.isArray(seg.subSegments) ? seg.subSegments : [],
       }))
     : [];

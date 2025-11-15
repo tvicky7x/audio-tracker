@@ -2,8 +2,12 @@
 
 > A headless JavaScript library that gives you full control over web audio — playback, tracking, and Media Session integration made simple.
 
-[![npm version](https://img.shields.io/npm/v/audio-tracker.svg?wnloads](https://img.shields.io/npm/dm/audio-tracker.svg?style=flat-square
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?github.com/tvicky7x/audio-tracker/blob/mainio/badge/TypeScript-5.9.3(https://tvicky7x.github.io/audio-tracker/)** | **[📖 Documentation](https://github.com/tvicky7x/audio-tracker#-api-documentation)** | **[💾 Installation](https://github.com/tvicky7x/audio-tracker#-installation)\*\*
+[![npm version](https://img.shields.io/npm/v/audio-tracker.svg?style=flat-square)](https://www.npmjs.com/package/audio-tracker)
+[![npm downloads](https://img.shields.io/npm/dm/audio-tracker.svg?style=flat-square)](https://www.npmjs.com/package/audio-tracker)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/tvicky7x/audio-tracker/blob/main/LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
+
+**[🎮 Live Demo](https://tvicky7x.github.io/audio-tracker/)** | **[📖 Documentation](https://github.com/tvicky7x/audio-tracker#-api-documentation)** | **[💾 Installation](https://github.com/tvicky7x/audio-tracker#-installation)**
 
 ---
 
@@ -56,6 +60,12 @@ yarn add audio-tracker
 
 ```bash
 pnpm add audio-tracker
+```
+
+### CDN
+
+```
+<script src="https://unpkg.com/audio-tracker@1.2.3/dist/index.js"></script>
 ```
 
 ---

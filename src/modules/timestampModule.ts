@@ -1,14 +1,8 @@
-/**
- * Speaker information in a segment
- */
 interface Speaker {
   id: string;
   name?: string;
 }
 
-/**
- * Sub-segment of a timestamp segment
- */
 interface SubSegment {
   id: string;
   start: number;
@@ -17,9 +11,6 @@ interface SubSegment {
   text?: string;
 }
 
-/**
- * Segment representing a time range in audio with optional speaker and sub-segments
- */
 interface Segment {
   id: string;
   start: number;
@@ -31,17 +22,11 @@ interface Segment {
   subSegments?: SubSegment[];
 }
 
-/**
- * Options defining segment list and gap behavior for timestamps
- */
 interface TimestampOptions {
   segments?: Segment[];
   gapBehavior?: "persist-previous" | "persist-next" | null;
 }
 
-/**
- * Extended AudioTracker interface with timestamp module functionality
- */
 interface AudioTrackerWithTimestamp {
   options: {
     timestamp?: TimestampOptions;
@@ -58,7 +43,6 @@ interface AudioTrackerWithTimestamp {
   subscribe: (event: string, callback: () => void) => void;
   unsubscribe: (event: string, callback: () => void) => void;
 
-  // Added dynamically by this module:
   getCurrentSegment?: () => Segment | null;
   getCurrentSubSegment?: () => SubSegment | null;
   getCurrentSpeaker?: () => Speaker | null;
@@ -68,45 +52,6 @@ interface AudioTrackerWithTimestamp {
   seekToSubSegmentById?: (id: string) => void;
 }
 
-/**
- * Timestamp module for AudioTracker that tracks audio segments and subsegments in real time.
- * Fires callbacks on segment, subsegment, and speaker changes based on playback time.
- *
- * @param tracker - AudioTracker instance with timestamp options
- * @returns Cleanup function that unsubscribes from events
- *
- * @example
- * // Example timestamp structure passed during AudioTracker construction:
- * const timestampData = {
- *   segments: [
- *     {
- *       id: 'seg1',
- *       start: 0,
- *       end: 30,
- *       order: 1,
- *       speaker: { id: 'sp1', name: 'Speaker 1' },
- *       label: 'Intro',
- *       text: 'hi everyone'
- *       subSegments: [
- *         { id: 'sub1', start: 0, end: 10, order: 1, text: 'hi' },
- *         { id: 'sub2', start: 10, end: 30, order: 2, text: 'everyone' },
- *       ],
- *     },
- *     {
- *       id: 'seg2',
- *       start: 30,
- *       end: 60,
- *       order: 2,
- *       label: 'Main section',
- *       text: 'welcome to todays podcast...'
- *     },
- *   ],
- *   gapBehavior: 'persist-previous', // Optional gap behavior
- * };
- *
- * const tracker = new AudioTracker('audio.mp3', { timestamp: timestampData });
- * tracker.use(timestampModule);
- */
 export function timestampModule(
   tracker: AudioTrackerWithTimestamp
 ): () => void {
@@ -125,13 +70,8 @@ export function timestampModule(
     return () => {};
   }
 
-  // Validate and sort segments by start time
   const validatedSegments = segments
     .filter((seg) => {
-      if (typeof seg.start !== "number" || typeof seg.end !== "number") {
-        console.warn("TimestampModule: Invalid segment detected", seg);
-        return false;
-      }
       if (seg.start >= seg.end) {
         console.warn("TimestampModule: Segment start >= end", seg);
         return false;
@@ -155,7 +95,6 @@ export function timestampModule(
   let isInitialized = false;
 
   function findSegmentIndexByTime(time: number): number {
-    if (typeof time !== "number" || isNaN(time)) return -1;
     return validatedSegments.findIndex(
       (seg) => time >= seg.start && time < seg.end
     );
@@ -163,14 +102,12 @@ export function timestampModule(
 
   function findSubSegmentIndexByTime(segment: Segment, time: number): number {
     if (!segment.subSegments?.length) return -1;
-    if (typeof time !== "number" || isNaN(time)) return -1;
     return segment.subSegments.findIndex(
       (sub) => time >= sub.start && time < sub.end
     );
   }
 
   function findPreviousSegmentByTime(time: number): number {
-    if (typeof time !== "number" || isNaN(time)) return -1;
     for (let i = validatedSegments.length - 1; i >= 0; i--) {
       if (validatedSegments[i].end <= time) return i;
     }
@@ -178,7 +115,6 @@ export function timestampModule(
   }
 
   function findNextSegmentByTime(time: number): number {
-    if (typeof time !== "number" || isNaN(time)) return -1;
     for (let i = 0; i < validatedSegments.length; i++) {
       if (validatedSegments[i].start >= time) return i;
     }
@@ -240,11 +176,7 @@ export function timestampModule(
   function handleTimeUpdate(): void {
     const currentTime = tracker.getCurrentTime();
 
-    if (
-      typeof currentTime !== "number" ||
-      isNaN(currentTime) ||
-      currentTime < 0
-    ) {
+    if (currentTime < 0) {
       return;
     }
 
@@ -416,11 +348,9 @@ export function timestampModule(
     }
   };
 
-  // Subscribe to timeupdate and seeking for sync
   tracker.subscribe("timeupdate", handleTimeUpdate);
   tracker.subscribe("seeking", handleSeeking);
 
-  // Cleanup function to unsubscribe events
   return () => {
     tracker.unsubscribe("timeupdate", handleTimeUpdate);
     tracker.unsubscribe("seeking", handleSeeking);

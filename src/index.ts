@@ -331,6 +331,20 @@ export default class AudioTracker {
   }
 
   /**
+   * Toggle playback state between play and pause
+   * @returns Promise that resolves when playback starts or void if paused
+   * @example
+   * await tracker.togglePlay();
+   */
+  public togglePlay(): Promise<void> | void {
+    if (this.isPlaying()) {
+      this.pause();
+    } else {
+      return this.play();
+    }
+  }
+
+  /**
    * Seek to a specific time position in the audio
    * @param time - Time position in seconds
    * @example

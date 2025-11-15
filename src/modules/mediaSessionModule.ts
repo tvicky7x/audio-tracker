@@ -66,7 +66,6 @@ export function mediaSessionModule(
    * });
    */
   tracker.updateMediaSessionMetadata = (metadata: MediaMetadataInit): void => {
-    if (!("mediaSession" in navigator)) return;
     try {
       navigator.mediaSession.metadata = new MediaMetadata(metadata);
     } catch (error) {
@@ -74,9 +73,6 @@ export function mediaSessionModule(
     }
   };
 
-  /**
-   * Update Media Session playback state
-   */
   function updatePlaybackState(state: MediaSessionPlaybackState): void {
     try {
       navigator.mediaSession.playbackState = state;
@@ -85,16 +81,14 @@ export function mediaSessionModule(
     }
   }
 
-  /**
-   * Update Media Session position state
-   */
   function updatePositionState(): void {
-    if (tracker.audio.duration && !isNaN(tracker.audio.duration)) {
+    const { duration, playbackRate, currentTime } = tracker.audio;
+    if (duration && !isNaN(duration)) {
       try {
         navigator.mediaSession.setPositionState({
-          duration: tracker.audio.duration,
-          playbackRate: tracker.audio.playbackRate,
-          position: tracker.audio.currentTime,
+          duration,
+          playbackRate,
+          position: currentTime,
         });
       } catch (error) {
         console.warn("Failed to update Media Session position:", error);
@@ -154,28 +148,25 @@ export function mediaSessionModule(
   for (const [action, handler] of actions) {
     try {
       navigator.mediaSession.setActionHandler(action, handler);
-    } catch (error) {
+    } catch {
       console.warn(`Media Session action "${action}" not supported`);
     }
   }
 
-  // Handlers for tracking playback and position state updates
+  // Playback event handlers
   const handleEnded = (): void => {
     updatePositionState();
     updatePlaybackState("paused");
   };
-
   const handlePlay = (): void => {
     updatePositionState();
     updatePlaybackState("playing");
   };
-
   const handlePause = (): void => {
     updatePositionState();
     updatePlaybackState("paused");
   };
 
-  // Store subscriptions to unsubscribe later
   const subscriptions: Array<[string, () => void]> = [
     ["loadedmetadata", updatePositionState],
     ["seeked", updatePositionState],
@@ -190,12 +181,13 @@ export function mediaSessionModule(
     tracker.subscribe(event, handler)
   );
 
-  // Return cleanup function to clear handlers and metadata
   return (): void => {
     actions.forEach(([action]) => {
       try {
         navigator.mediaSession.setActionHandler(action, null);
-      } catch {}
+      } catch {
+        // optionally log or ignore
+      }
     });
 
     subscriptions.forEach(([event, handler]) =>

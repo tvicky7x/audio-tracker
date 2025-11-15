@@ -1,8 +1,14 @@
+/**
+ * Speaker information in a segment
+ */
 interface Speaker {
   id: string;
   name?: string;
 }
 
+/**
+ * Sub-segment of a timestamp segment
+ */
 interface SubSegment {
   id: string;
   start: number;
@@ -11,6 +17,9 @@ interface SubSegment {
   text?: string;
 }
 
+/**
+ * Segment representing a time range in audio with optional speaker and sub-segments
+ */
 interface Segment {
   id: string;
   start: number;
@@ -22,11 +31,17 @@ interface Segment {
   subSegments?: SubSegment[];
 }
 
+/**
+ * Options defining segment list and gap behavior for timestamps
+ */
 interface TimestampOptions {
   segments?: Segment[];
   gapBehavior?: "persist-previous" | "persist-next" | null;
 }
 
+/**
+ * Extended AudioTracker interface with timestamp module functionality
+ */
 interface AudioTrackerWithTimestamp {
   options: {
     timestamp?: TimestampOptions;
@@ -43,6 +58,7 @@ interface AudioTrackerWithTimestamp {
   subscribe: (event: string, callback: () => void) => void;
   unsubscribe: (event: string, callback: () => void) => void;
 
+  // Added dynamically by this module:
   getCurrentSegment?: () => Segment | null;
   getCurrentSubSegment?: () => SubSegment | null;
   getCurrentSpeaker?: () => Speaker | null;
@@ -52,6 +68,45 @@ interface AudioTrackerWithTimestamp {
   seekToSubSegmentById?: (id: string) => void;
 }
 
+/**
+ * Timestamp module for AudioTracker that tracks audio segments and subsegments in real time.
+ * Fires callbacks on segment, subsegment, and speaker changes based on playback time.
+ *
+ * @param tracker - AudioTracker instance with timestamp options
+ * @returns Cleanup function that unsubscribes from events
+ *
+ * @example
+ * // Example timestamp structure passed during AudioTracker construction:
+ * const timestampData = {
+ *   segments: [
+ *     {
+ *       id: 'seg1',
+ *       start: 0,
+ *       end: 30,
+ *       order: 1,
+ *       speaker: { id: 'sp1', name: 'Speaker 1' },
+ *       label: 'Intro',
+ *       text: 'hi everyone'
+ *       subSegments: [
+ *         { id: 'sub1', start: 0, end: 10, order: 1, text: 'hi' },
+ *         { id: 'sub2', start: 10, end: 30, order: 2, text: 'everyone' },
+ *       ],
+ *     },
+ *     {
+ *       id: 'seg2',
+ *       start: 30,
+ *       end: 60,
+ *       order: 2,
+ *       label: 'Main section',
+ *       text: 'welcome to todays podcast...'
+ *     },
+ *   ],
+ *   gapBehavior: 'persist-previous', // Optional gap behavior
+ * };
+ *
+ * const tracker = new AudioTracker('audio.mp3', { timestamp: timestampData });
+ * tracker.use(timestampModule);
+ */
 export function timestampModule(
   tracker: AudioTrackerWithTimestamp
 ): () => void {

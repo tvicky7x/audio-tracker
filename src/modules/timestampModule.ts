@@ -62,7 +62,6 @@ interface AudioTrackerWithTimestamp {
   subscribe: (event: string, callback: () => void) => void;
   unsubscribe: (event: string, callback: () => void) => void;
 
-  // Added dynamically by timestampModule:
   getCurrentSegment?: () => Segment | null;
   getCurrentSubSegment?: () => SubSegment | null;
   getCurrentSpeaker?: () => Speaker | null;
@@ -135,23 +134,17 @@ export function timestampModule(
       }))
     : [];
 
-  // Store gap behavior option
   const gapBehavior: "persist-previous" | "persist-next" | null =
     tracker.options?.timestamp?.gapBehavior || null;
 
-  // Warn and exit if no segments to work with
   if (!segments.length) {
     console.warn("TimestampModule: No segments provided or array is empty.");
     return () => {};
   }
 
-  // Validate segments and sort by start time
+  // Removed runtime type checks for seg.start and seg.end because TS guarantees their type
   const validatedSegments: Segment[] = segments
     .filter((seg) => {
-      if (typeof seg.start !== "number" || typeof seg.end !== "number") {
-        console.warn("TimestampModule: Invalid segment detected", seg);
-        return false;
-      }
       if (seg.start >= seg.end) {
         console.warn("TimestampModule: Segment start >= end", seg);
         return false;
@@ -165,7 +158,6 @@ export function timestampModule(
     return () => {};
   }
 
-  // Mutable state trackers
   let currentSegmentIndex: number = -1;
   let currentSubSegmentIndex: number = -1;
   let currentSpeaker: Speaker | null = null;
@@ -175,8 +167,8 @@ export function timestampModule(
   let lastReportedLabel: string | null = null;
   let isInitialized: boolean = false;
 
+  // Removed typeof and isNaN checks on 'time' parameter; TS type system covers this
   function findSegmentIndexByTime(time: number): number {
-    if (typeof time !== "number" || isNaN(time)) return -1;
     return validatedSegments.findIndex(
       (seg) => time >= seg.start && time < seg.end
     );
@@ -184,14 +176,12 @@ export function timestampModule(
 
   function findSubSegmentIndexByTime(segment: Segment, time: number): number {
     if (!segment.subSegments?.length) return -1;
-    if (typeof time !== "number" || isNaN(time)) return -1;
     return segment.subSegments.findIndex(
       (sub) => time >= sub.start && time < sub.end
     );
   }
 
   function findPreviousSegmentByTime(time: number): number {
-    if (typeof time !== "number" || isNaN(time)) return -1;
     for (let i = validatedSegments.length - 1; i >= 0; i--) {
       if (validatedSegments[i].end <= time) return i;
     }
@@ -199,7 +189,6 @@ export function timestampModule(
   }
 
   function findNextSegmentByTime(time: number): number {
-    if (typeof time !== "number" || isNaN(time)) return -1;
     for (let i = 0; i < validatedSegments.length; i++) {
       if (validatedSegments[i].start >= time) return i;
     }
@@ -228,7 +217,6 @@ export function timestampModule(
   }
 
   function getSubSegmentWithGapBehavior(time: number): SubSegment | null {
-    // Safe property access
     if (
       currentSegmentIndex !== -1 &&
       currentSubSegmentIndex !== -1 &&
@@ -264,12 +252,8 @@ export function timestampModule(
 
   function handleTimeUpdate(): void {
     const currentTime = tracker.getCurrentTime();
-    if (
-      typeof currentTime !== "number" ||
-      isNaN(currentTime) ||
-      currentTime < 0
-    )
-      return;
+
+    if (currentTime < 0) return;
 
     const newSegmentIndex = findSegmentIndexByTime(currentTime);
     const segmentToReport = getSegmentWithGapBehavior(
@@ -284,18 +268,22 @@ export function timestampModule(
     if (segmentChanged) {
       if (lastReportedSegment !== null)
         tracker.callbacks.onSegmentExit?.(lastReportedSegment);
+
       currentSegmentIndex = newSegmentIndex;
       if (currentSegmentIndex !== -1)
         lastValidSegmentIndex = currentSegmentIndex;
+
       if (segmentToReport !== null) {
         tracker.callbacks.onSegmentChange?.(segmentToReport);
         tracker.callbacks.onSegmentEnter?.(segmentToReport);
         lastReportedSegment = segmentToReport;
+
         const newSpeaker = segmentToReport.speaker ?? null;
         if (currentSpeaker?.id !== newSpeaker?.id) {
           currentSpeaker = newSpeaker;
           tracker.callbacks.onSpeakerChange?.(currentSpeaker);
         }
+
         const newLabel = segmentToReport.label ?? null;
         if (lastReportedLabel !== newLabel) {
           lastReportedLabel = newLabel;
@@ -327,6 +315,7 @@ export function timestampModule(
       if (newSubSegmentIndex !== currentSubSegmentIndex) {
         if (lastReportedSubSegment !== null)
           tracker.callbacks.onSubSegmentExit?.(lastReportedSubSegment);
+
         currentSubSegmentIndex = newSubSegmentIndex;
         if (
           currentSubSegmentIndex !== -1 &&
@@ -373,7 +362,7 @@ export function timestampModule(
 
   tracker.getSubSegmentsBySegmentId = (id: string): SubSegment[] => {
     const segment = validatedSegments.find((seg) => seg.id === id);
-    return Array.isArray(segment?.subSegments) ? segment!.subSegments : [];
+    return Array.isArray(segment?.subSegments) ? segment.subSegments : [];
   };
 
   tracker.getNextSegment = (): Segment | null => {
@@ -417,13 +406,11 @@ export function timestampModule(
     gapBehavior;
 
   tracker.getSegmentAtTime = (time: number): Segment | null => {
-    if (typeof time !== "number" || isNaN(time)) return null;
     const segIndex = findSegmentIndexByTime(time);
     return getSegmentWithGapBehavior(segIndex, time);
   };
 
   tracker.getSubSegmentAtTime = (time: number): SubSegment | null => {
-    if (typeof time !== "number" || isNaN(time)) return null;
     const segAtTime = tracker.getSegmentAtTime
       ? tracker.getSegmentAtTime(time)
       : null;
@@ -449,9 +436,8 @@ export function timestampModule(
 
   tracker.getCurrentSegment = (): Segment | null => {
     const currentTime = tracker.getCurrentTime();
-    if (currentSegmentIndex !== -1) {
+    if (currentSegmentIndex !== -1)
       return validatedSegments[currentSegmentIndex];
-    }
     return getSegmentWithGapBehavior(currentSegmentIndex, currentTime);
   };
 
@@ -488,7 +474,6 @@ export function timestampModule(
   };
 
   tracker.seekToSegmentByOrder = (order: number): void => {
-    if (typeof order !== "number") return;
     const segment = validatedSegments.find((seg) => seg.order === order);
     if (segment?.start != null) {
       const duration = tracker.getDuration();

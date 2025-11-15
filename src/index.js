@@ -225,6 +225,14 @@ export default class AudioTracker {
     this.audio.pause();
   }
 
+  togglePlay() {
+    if (this.isPlaying()) {
+      this.pause();
+    } else {
+      return this.play();
+    }
+  }
+
   seekTo(time) {
     const duration = this.duration || this.audio.duration || 0;
     this.audio.currentTime = Math.max(0, Math.min(time, duration));

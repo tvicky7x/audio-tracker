@@ -43,7 +43,6 @@ export function timestampModule(tracker) {
   let lastValidSegmentIndex = -1;
   let lastReportedSegment = null;
   let lastReportedSubSegment = null;
-  let lastReportedLabel = null;
   let isInitialized = false;
 
   // Returns index of segment for time or -1 if not found
@@ -155,21 +154,12 @@ export function timestampModule(tracker) {
           currentSpeaker = newSpeaker;
           tracker.callbacks.onSpeakerChange?.(currentSpeaker);
         }
-        const newLabel = segmentToReport.label ?? null;
-        if (lastReportedLabel !== newLabel) {
-          lastReportedLabel = newLabel;
-          tracker.callbacks.onLabelChange?.(newLabel);
-        }
       } else {
         tracker.callbacks.onSegmentChange?.(null);
         lastReportedSegment = null;
         if (currentSpeaker !== null) {
           currentSpeaker = null;
           tracker.callbacks.onSpeakerChange?.(null);
-        }
-        if (lastReportedLabel !== null) {
-          lastReportedLabel = null;
-          tracker.callbacks.onLabelChange?.(null);
         }
       }
     }
@@ -322,26 +312,6 @@ export function timestampModule(tracker) {
   tracker.seekToSegmentById = (id) => {
     if (!id) return;
     const segment = validatedSegments.find((seg) => seg.id === id);
-    if (segment?.start != null) {
-      const duration = tracker.getDuration();
-      const seekTime = Math.min(Math.max(segment.start, 0), duration);
-      tracker.seekTo(seekTime);
-    }
-  };
-
-  tracker.seekToSegmentByLabel = (label) => {
-    if (!label) return;
-    const segment = validatedSegments.find((seg) => seg.label === label);
-    if (segment?.start != null) {
-      const duration = tracker.getDuration();
-      const seekTime = Math.min(Math.max(segment.start, 0), duration);
-      tracker.seekTo(seekTime);
-    }
-  };
-
-  tracker.seekToSegmentByOrder = (order) => {
-    if (typeof order !== "number") return;
-    const segment = validatedSegments.find((seg) => seg.order === order);
     if (segment?.start != null) {
       const duration = tracker.getDuration();
       const seekTime = Math.min(Math.max(segment.start, 0), duration);

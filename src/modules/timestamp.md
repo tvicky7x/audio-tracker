@@ -1,8 +1,8 @@
 # Timestamp Module
 
-> Segment/chapter-aware audio tracking for timelines, podcasts, speaker detection, and more with AudioTracker
+> Real-time audio segment & sub-segment tracking for rich, structured playback experiences
 
-The Timestamp module adds **real-time segment, sub-segment, and speaker tracking** to any audio powered by AudioTracker. Easily manage chapters, highlights, and interactive playback controls for podcasts, interviews, or time-stamped educational content.
+The Timestamp module enables precise segment tracking in AudioTracker—for podcasts, interviews, or chaptered content. Attach timestamp data with labeled segments, speakers, and sub-segments, and listen for segment changes, speaker shifts, or gap periods as the user plays audio.
 
 **[← Back to Main Documentation](https://github.com/tvicky7x/audio-tracker#readme)**
 
@@ -22,20 +22,20 @@ The Timestamp module adds **real-time segment, sub-segment, and speaker tracking
 
 ## Features
 
-- 🏷️ **Segment & Chapter Tracking** - Define reusable audio segments with order, labels, speakers, and sub-segments
-- 🧑 **Speaker Detection** - Tracks speaker changes in real time and fires events
-- ⏱️ **Sub-Segment (Phrase) Markers** - Nested sub-segments for transcript sync or karaoke-style phrase highlighting
-- 🔀 **Gap Behavior** - Control what happens when audio is between defined segments
-- 🔊 **Real-Time Callbacks** - `onSegmentChange`, `onSpeakerChange`, `onSubSegmentChange`, `onLabelChange`
-- 🔗 **Direct Navigation** - Seek by segment id, label, or order
-- 🚀 **TypeScript-Friendly** - All interfaces and options typed out of the box
-- 💡 **Non-Intrusive** - Easily add/remove from any tracker instance
+- ⏱️ **Segmented Playback** - Track entry/exit for labeled audio segments and sub-segments in real time
+- 🧑‍💼 **Speaker Annotation** - Attach speaker metadata per segment (e.g., for interviews)
+- 📝 **Custom Labels/Text** - Include text/chapter summaries for each section
+- 🔄 **Gap Handling** - "Persist" previous or next segment even when playback moves outside a defined range
+- ⚡ **Utility Methods** - Seek to any segment, jump to next/prev, query current state
+- 🪝 **Rich Callbacks** - Listen for segment/subsegment/speaker change events as audio plays
+- 🎯 **TypeScript Ready** - Full type definitions included
+- 🎮 **UI-Agnostic** - Build transcript or chapter UIs without coupling audio logic to presentation
 
 ---
 
 ## Installation
 
-Timestamp module is included with the main `audio-tracker` package.
+The Timestamp module is included with the main `audio-tracker` package.
 
 ```bash
 npm install audio-tracker
@@ -48,74 +48,72 @@ npm install audio-tracker
 ```typescript
 import AudioTracker, { timestampModule } from "audio-tracker";
 
-const tracker = new AudioTracker("/podcast.mp3", {
-  timestamp: {
-    segments: [
-      {
-        id: "intro",
-        start: 0,
-        end: 30,
-        speaker: { id: "host", name: "Host Name" },
-        label: "Introduction",
-        text: "Welcome to the show",
-        subSegments: [
-          { id: "intro-1", start: 0, end: 10, text: "Welcome" },
-          { id: "intro-2", start: 10, end: 30, text: "to the show" },
-        ],
-      },
-      {
-        id: "topic1",
-        start: 30,
-        end: 90,
-        label: "Main Topic",
-        text: "Today's discussion: ...",
-        speaker: { id: "guest", name: "Guest Speaker" },
-      },
-    ],
-    gapBehavior: "persist-previous",
-  },
-});
+const timestampData = {
+  segments: [
+    {
+      id: "seg1",
+      start: 0,
+      end: 30,
+      order: 1,
+      speaker: { id: "sp1", name: "Host" },
+      label: "Intro",
+      text: "Hello and welcome",
+      subSegments: [
+        { id: "sub1", start: 0, end: 10, text: "Hello" },
+        { id: "sub2", start: 10, end: 30, text: "and welcome" },
+      ],
+    },
+    {
+      id: "seg2",
+      start: 30,
+      end: 65,
+      label: "Section 1",
+      text: "Today's main topic...",
+    },
+  ],
+  gapBehavior: "persist-previous", // or "persist-next"
+};
 
-// Add timestamp awareness to the tracker
+const tracker = new AudioTracker("/podcast.mp3", { timestamp: timestampData });
 tracker.use(timestampModule);
 
-// Set up callbacks for segment/speaker changes
 tracker.init({
-  onSegmentChange: (segment) => console.log("Segment:", segment?.label),
-  onSpeakerChange: (speaker) => console.log("Speaker:", speaker?.name),
-  onSubSegmentChange: (phrase) => console.log("Phrase:", phrase?.text),
+  onSegmentChange: (segment) => console.log("📍 Now in:", segment?.label),
+  onSpeakerChange: (speaker) => console.log("🗣️ Speaker:", speaker?.name),
 });
+
+tracker.play();
 ```
 
 ---
 
 ## API Documentation
 
-### Module Function
+### Timestamp Module
 
 ```typescript
 function timestampModule(tracker: AudioTracker): () => void;
 ```
 
-Enables time-based segment, speaker, and sub-segment tracking, and adds utility methods for navigation and inspection.
+Attaches segment/sub-segment tracking and exposes state/query/utility methods.
 
 #### Parameters
 
-| Parameter | Type           | Description                     |
-| --------- | -------------- | ------------------------------- |
-| `tracker` | `AudioTracker` | AudioTracker instance to extend |
+| Parameter | Type           | Description        |
+| --------- | -------------- | ------------------ |
+| `tracker` | `AudioTracker` | Instance to extend |
 
 #### Returns
 
-| Type         | Description                                 |
-| ------------ | ------------------------------------------- |
-| `() => void` | Cleanup function to unsubscribe from events |
+| Type         | Description                                    |
+| ------------ | ---------------------------------------------- |
+| `() => void` | Cleanup function to remove listeners/callbacks |
 
 ---
 
-### Configuration Options
+### TimestampOptions
 
-Pass `timestamp` configuration in the AudioTracker options:
+Attach a `timestamp` option to AudioTracker during instantiation.
 
 ```typescript
 interface TimestampOptions {
@@ -124,39 +122,19 @@ interface TimestampOptions {
 }
 ```
 
-- **segments:** (required) Segment array (see below)
-- **gapBehavior:** Action when no segment is active
-  - `"persist-previous"`: Use previous segment info
-  - `"persist-next"`: Use next segment info
-  - `null`: No segment info in gaps
+- **segments:** Array of Segment objects (see below)
+- **gapBehavior:** When playback leaves a segment, "persist-previous" continues the last segment, "persist-next" jumps ahead, or `null` = no segment
 
-#### Segment Structure
+---
 
-```typescript
-interface Segment {
-  id: string; // Unique identifier
-  start: number; // Segment start time (seconds)
-  end: number; // Segment end time (seconds)
-  order?: number; // Optional play order
-  speaker?: Speaker; // Optional speaker data
-  label?: string; // Optional label (display name)
-  text?: string; // Optional segment text/transcript
-  subSegments?: SubSegment[]; // Optional list of sub-segments
-}
-```
-
-##### Speaker
+### Segment and SubSegment
 
 ```typescript
 interface Speaker {
   id: string;
   name?: string;
 }
-```
 
-##### SubSegment
-
-```typescript
 interface SubSegment {
   id: string;
   start: number;
@@ -164,186 +142,194 @@ interface SubSegment {
   order?: number;
   text?: string;
 }
-```
 
----
-
-### Added Instance Methods
-
-After attaching, AudioTracker exposes:
-
-| Method                        | Returns              | Description                      |
-| ----------------------------- | -------------------- | -------------------------------- |
-| `getCurrentSegment()`         | `Segment \| null`    | Current segment at playback time |
-| `getCurrentSubSegment()`      | `SubSegment \| null` | Current sub-segment at playback  |
-| `getCurrentSpeaker()`         | `Speaker \| null`    | Speaker for current segment      |
-| `seekToSegmentById(id)`       | `void`               | Seek to segment by id            |
-| `seekToSegmentByLabel(label)` | `void`               | Seek by human label              |
-| `seekToSegmentByOrder(order)` | `void`               | Seek by sequential order         |
-| `seekToSubSegmentById(id)`    | `void`               | Seek to sub-segment by id        |
-
----
-
-### Supported Callbacks
-
-Attach by passing to AudioTracker’s `init`:
-
-| Callback             | Params               | Fires When                              |
-| -------------------- | -------------------- | --------------------------------------- |
-| `onSegmentChange`    | `Segment \| null`    | Segment changes or becomes inactive     |
-| `onSpeakerChange`    | `Speaker \| null`    | Speaker changes or becomes inactive     |
-| `onLabelChange`      | `string \| null`     | Label changes or becomes inactive       |
-| `onSubSegmentChange` | `SubSegment \| null` | Sub-segment changes or becomes inactive |
-
----
-
-## Usage Examples
-
-### Chapter Navigation UI
-
-```typescript
-// List chapter labels for a seekbar menu
-const tracker = new AudioTracker("/book.mp3", {
-  timestamp: {
-    segments: [
-      { id: "ch1", start: 0, end: 100, label: "Chapter 1" },
-      { id: "ch2", start: 100, end: 200, label: "Chapter 2" },
-    ],
-  },
-});
-
-tracker.use(timestampModule);
-
-// Go to second chapter
-tracker.seekToSegmentByLabel?.("Chapter 2");
-```
-
----
-
-### Speaker Timeline
-
-```typescript
-const tracker = new AudioTracker("/interview.mp3", {
-  timestamp: {
-    segments: [
-      { id: "q1", start: 0, end: 50, speaker: { id: "host", name: "Host" } },
-      {
-        id: "a1",
-        start: 50,
-        end: 150,
-        speaker: { id: "guest", name: "Dr. Guest" },
-      },
-    ],
-  },
-});
-tracker.use(timestampModule);
-
-tracker.init({
-  onSpeakerChange: (sp) => showSpeakerBadge(sp?.name),
-});
-```
-
----
-
-### Sub-Segment Phrase Highlight
-
-```typescript
-const tracker = new AudioTracker("/reading.mp3", {
-  timestamp: {
-    segments: [
-      {
-        id: "s1",
-        start: 0,
-        end: 5,
-        subSegments: [
-          { id: "w1", start: 0, end: 2.5, text: "Hello" },
-          { id: "w2", start: 2.5, end: 5, text: "World" },
-        ],
-      },
-    ],
-  },
-});
-tracker.use(timestampModule);
-
-tracker.init({
-  onSubSegmentChange: (phrase) => highlightWord(phrase?.text),
-});
-```
-
----
-
-### Cleanup
-
-```typescript
-const tracker = new AudioTracker("/audio.mp3", {...});
-const cleanup = tracker.use(timestampModule);
-
-cleanup(); // Unsubscribes event handlers
-
-// Or simply destroy tracker
-tracker.destroy();
-```
-
----
-
-## Browser Support
-
-**All core features work on any browser that supports JavaScript and Web Audio API:**
-
-| Browser         | Minimum Version |
-| --------------- | --------------- |
-| Chrome          | 57+             |
-| Firefox         | 52+             |
-| Safari          | 11+             |
-| Edge            | 79+             |
-| Opera           | 44+             |
-| iOS Safari      | 11+             |
-| Android Browser | 67+             |
-
----
-
-## Common Issues
-
-### Issue: onSegmentChange not firing
-
-**Solution:** Ensure timestamp config’s `segments` array is populated and valid (start < end):
-
-```typescript
-{
-  segments: [{ id: "a", start: 0, end: 25 }];
+interface Segment {
+  id: string;
+  label?: string;
+  start: number;
+  end: number;
+  order?: number;
+  speaker?: Speaker | null;
+  text?: string;
+  subSegments?: SubSegment[];
 }
 ```
 
 ---
 
-### Issue: Gaps between segments
+### Callbacks
 
-Control with `gapBehavior`:
+Add callbacks via `tracker.init()` for real-time change events:
 
-- `"persist-previous"`: Last segment persists during gaps (default)
-- `"persist-next"`: Next segment info used during gaps
-- `null`: No segment/speaker reported in gaps
+| Callback             | Parameter                  | Description                     |
+| -------------------- | -------------------------- | ------------------------------- |
+| `onSegmentChange`    | (segment: Segment \| null) | Fires when main segment changes |
+| `onSegmentEnter`     | (segment: Segment \| null) | Fires on entering a segment     |
+| `onSegmentExit`      | (segment: Segment \| null) | Fires on leaving a segment      |
+| `onSubSegmentChange` | (sub: SubSegment \| null)  | Fires when sub-segment changes  |
+| `onSubSegmentEnter`  | (sub: SubSegment \| null)  | Fires on entering a sub-segment |
+| `onSubSegmentExit`   | (sub: SubSegment \| null)  | Fires on leaving a sub-segment  |
+| `onSpeakerChange`    | (speaker: Speaker \| null) | Fires when speaker changes      |
 
 ---
 
-### Issue: Seeking doesn’t update segment
+### Extended Methods
 
-The module listens for `"timeupdate"` and `"seeking"` events—make sure you use AudioTracker’s seek methods.
+After attaching, the following are available on the tracker instance:
+
+| Method                          | Returns            | Description                                 |
+| ------------------------------- | ------------------ | ------------------------------------------- |
+| `getCurrentSegment()`           | Segment \| null    | Currently active main segment               |
+| `getCurrentSubSegment()`        | SubSegment \| null | Currently active sub-segment                |
+| `getCurrentSpeaker()`           | Speaker \| null    | Current speaker for this segment            |
+| `getAllSegments()`              | Segment[]          | All user-defined segments                   |
+| `getSubSegmentsBySegmentId(id)` | SubSegment[]       | All sub-segments for a given segment        |
+| `seekToSegmentById(id)`         | void               | Seek to the start of a segment              |
+| `seekToSubSegmentById(id)`      | void               | Seek to the start of a sub-segment          |
+| `getNextSegment()`              | Segment \| null    | Next logical segment after current          |
+| `getPreviousSegment()`          | Segment \| null    | Previous segment                            |
+| `seekToNextSegment()`           | void               | Jump to next segment                        |
+| `seekToPreviousSegment()`       | void               | Jump to previous segment                    |
+| `isInGap()`                     | boolean            | Is playback currently outside all segments? |
+| `getGapBehavior()`              | string \| null     | "persist-previous", "persist-next", or null |
+| `getSegmentAtTime(time)`        | Segment \| null    | Segment at a specific time                  |
+| `getSubSegmentAtTime(time)`     | SubSegment \| null | Sub-segment at a specific time              |
 
 ---
 
-### Issue: Sub-segment never updates
+## Usage Examples
 
-**Solution:** Each sub-segment’s `start` and `end` must be within its parent segment, and non-overlapping.
+### Podcast Chapters with Speakers
+
+```typescript
+const timestampData = {
+  segments: [
+    {
+      id: "intro",
+      start: 0,
+      end: 15,
+      label: "Introduction",
+      speaker: { id: "host", name: "Host" },
+      text: "Welcome!",
+      subSegments: [
+        { id: "intro-1", start: 0, end: 5, text: "Welcome" },
+        { id: "intro-2", start: 5, end: 15, text: "to the show." },
+      ],
+    },
+    {
+      id: "main",
+      start: 15,
+      end: 120,
+      label: "Interview",
+      speaker: { id: "guest", name: "Guest" },
+      text: "Interview section",
+    },
+  ],
+  gapBehavior: "persist-previous",
+};
+
+const tracker = new AudioTracker("/show.mp3", { timestamp: timestampData });
+tracker.use(timestampModule);
+
+tracker.init({
+  onSpeakerChange: (sp) => console.log("Speaker:", sp?.name),
+  onSegmentChange: (seg) => console.log("Now at:", seg?.label),
+});
+
+tracker.seekToSegmentById("main"); // Jumps to interview
+```
+
+---
+
+### Jump to Next/Previous Segment
+
+```typescript
+// Jump to next section (useful for 'skip intro')
+// e.g. on a 'Next' button click:
+tracker.seekToNextSegment();
+
+// Jump back to previous chapter
+tracker.seekToPreviousSegment();
+```
+
+---
+
+### Custom Transcript UI
+
+Extract and render current segment label/text for UX highlighting:
+
+```typescript
+const current = tracker.getCurrentSegment();
+if (current) {
+  display(current.label, current.text); // Show in your UI
+}
+```
+
+---
+
+### Gap Handling
+
+Choose gap behavior with `gapBehavior`:
+
+- `"persist-previous"` - Continue showing last segment's text when in gaps (default)
+- `"persist-next"` - Jump early to the next segment, if out of range
+- `null` - No fallback; no segment/sub-segment reported outside defined ranges
+
+---
+
+## Browser Support
+
+All features supported in any browser running JavaScript and HTML5 `<audio>`. No external dependencies.
+
+---
+
+## Common Issues
+
+### No Segments Provided
+
+If you forget to supply segments:
+
+```typescript
+const tracker = new AudioTracker("/audio.mp3", { timestamp: {} });
+tracker.use(timestampModule); // Logs warning, performs no segment tracking
+```
+
+**Solution:** Provide a non-empty `segments` array.
+
+---
+
+### Segment `start` >= `end`
+
+Segments where `start` is not before `end` are ignored:
+
+```typescript
+{
+  id: "bad",
+  start: 50,
+  end: 30 // Ignored by validator
+}
+```
+
+---
+
+### Seeking vs Live Updates
+
+On large-segmented audio, rapid seeking may cause many events. If you debounce your UI, listen to only `onSegmentChange` instead of all events.
+
+---
+
+### Sub-segments not matching playback
+
+Sub-segments should be non-overlapping and strictly within the parent segment's range.
 
 ---
 
 ## Best Practices
 
-- Always use unique `id` for segments and sub-segments
-- Use `label` for friendly UI (chapter names, etc)
-- Keep segment arrays sorted for best performance
-- Use `onLabelChange` for real-time chapter title updates
+- Order segments and sub-segments in increasing time order for clarity.
+- Normalize your timestamps programmatically before passing to AudioTracker.
+- Use `gapBehavior` if you want UI to never be empty outside segment windows.
+- Use rich segment properties: speakers, text, order, and custom fields for your own UI.
 
 ---
 

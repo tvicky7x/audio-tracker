@@ -13,7 +13,7 @@ interface SubSegment {
   id: string;
   start: number;
   end: number;
-  order: number;
+  order?: number;
   text?: string;
 }
 
@@ -22,11 +22,11 @@ interface SubSegment {
  */
 interface Segment {
   id: string;
+  label?: string;
   start: number;
   end: number;
-  order: number;
+  order?: number;
   speaker?: Speaker | null;
-  label?: string;
   text?: string;
   subSegments?: SubSegment[];
 }
@@ -54,7 +54,6 @@ interface AudioTrackerWithTimestamp {
     onSubSegmentEnter?: (subSegment: SubSegment | null) => void;
     onSubSegmentExit?: (subSegment: SubSegment | null) => void;
     onSpeakerChange?: (speaker: Speaker | null) => void;
-    onLabelChange?: (label: string | null) => void;
   };
   getCurrentTime: () => number;
   getDuration: () => number;
@@ -66,8 +65,6 @@ interface AudioTrackerWithTimestamp {
   getCurrentSubSegment?: () => SubSegment | null;
   getCurrentSpeaker?: () => Speaker | null;
   seekToSegmentById?: (id: string) => void;
-  seekToSegmentByLabel?: (label: string) => void;
-  seekToSegmentByOrder?: (order: number) => void;
   seekToSubSegmentById?: (id: string) => void;
   getAllSegments?: () => Segment[];
   getSubSegmentsBySegmentId?: (id: string) => SubSegment[];
@@ -163,7 +160,6 @@ export function timestampModule(
   let lastValidSegmentIndex: number = -1;
   let lastReportedSegment: Segment | null = null;
   let lastReportedSubSegment: SubSegment | null = null;
-  let lastReportedLabel: string | null = null;
   let isInitialized: boolean = false;
 
   // Removed typeof and isNaN checks on 'time' parameter; TS type system covers this
@@ -282,22 +278,12 @@ export function timestampModule(
           currentSpeaker = newSpeaker;
           tracker.callbacks.onSpeakerChange?.(currentSpeaker);
         }
-
-        const newLabel = segmentToReport.label ?? null;
-        if (lastReportedLabel !== newLabel) {
-          lastReportedLabel = newLabel;
-          tracker.callbacks.onLabelChange?.(newLabel);
-        }
       } else {
         tracker.callbacks.onSegmentChange?.(null);
         lastReportedSegment = null;
         if (currentSpeaker !== null) {
           currentSpeaker = null;
           tracker.callbacks.onSpeakerChange?.(null);
-        }
-        if (lastReportedLabel !== null) {
-          lastReportedLabel = null;
-          tracker.callbacks.onLabelChange?.(null);
         }
       }
     }
@@ -455,25 +441,6 @@ export function timestampModule(
   tracker.seekToSegmentById = (id: string): void => {
     if (!id) return;
     const segment = validatedSegments.find((seg) => seg.id === id);
-    if (segment?.start != null) {
-      const duration = tracker.getDuration();
-      const seekTime = Math.min(Math.max(segment.start, 0), duration);
-      tracker.seekTo(seekTime);
-    }
-  };
-
-  tracker.seekToSegmentByLabel = (label: string): void => {
-    if (!label) return;
-    const segment = validatedSegments.find((seg) => seg.label === label);
-    if (segment?.start != null) {
-      const duration = tracker.getDuration();
-      const seekTime = Math.min(Math.max(segment.start, 0), duration);
-      tracker.seekTo(seekTime);
-    }
-  };
-
-  tracker.seekToSegmentByOrder = (order: number): void => {
-    const segment = validatedSegments.find((seg) => seg.order === order);
     if (segment?.start != null) {
       const duration = tracker.getDuration();
       const seekTime = Math.min(Math.max(segment.start, 0), duration);

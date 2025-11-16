@@ -321,7 +321,7 @@ tracker.updateMediaSessionMetadata?.({
 });
 ```
 
-**[View Media Session API Documentation →](https://github.com/tvicky7x/audio-tracker/blob/main/docs/media-session.md)**
+**[View Media Session API Documentation →](https://github.com/tvicky7x/audio-tracker/blob/module-system/src/modules/media-session.md)**
 
 ### Timestamp Module
 
@@ -356,7 +356,7 @@ tracker.init({
 tracker.seekToSegmentById?.("intro");
 ```
 
-**[View Timestamp API Documentation →](https://github.com/tvicky7x/audio-tracker/blob/main/docs/timestamp.md)**
+**[View Timestamp API Documentation →](https://github.com/tvicky7x/audio-tracker/blob/module-system/src/modules/timestamp.md)**
 
 ---
 

@@ -672,7 +672,9 @@ tracker.destroy();</code></pre>
     <audio id="audioElement" src="assets/phonk-demo.mp3"></audio>
 
     <script type="module">
-      import AudioTracker from "https://unpkg.com/audio-tracker@latest/dist/index.js";
+      import AudioTracker, {
+        mediaSessionModule,
+      } from "https://unpkg.com/audio-tracker@2.0.0/dist/index.js";
 
       // Check Media Session API Support
       function checkMediaSessionSupport() {
@@ -711,6 +713,8 @@ tracker.destroy();</code></pre>
           ],
         },
       });
+
+      tracker.use(mediaSessionModule);
 
       // DOM elements
       const $ = (id) => document.getElementById(id);
@@ -766,8 +770,8 @@ tracker.destroy();</code></pre>
           progressBuffer.style.width = `${percent}%`;
           bufferStat.textContent = `${Math.round(percent)}%`;
         },
-        onVolumeChange: (data) => {
-          volumeStat.textContent = Math.round(data.volume);
+        onVolumeChange: (volume) => {
+          volumeStat.textContent = Math.round(volume);
         },
         onLoadStart: () => (status.textContent = "Loading..."),
         onCanPlay: () => (status.textContent = "Ready"),
@@ -776,7 +780,7 @@ tracker.destroy();</code></pre>
 
       // Event handlers
       playPauseBtn.onclick = () => {
-        tracker.isPlaying() ? tracker.pause() : tracker.play();
+        tracker.togglePlay();
       };
 
       $("backwardBtn").onclick = () => tracker.backward(10);

@@ -210,7 +210,7 @@ const timestampData = {
       end: 15,
       label: "Introduction",
       speaker: { id: "host", name: "Host" },
-      text: "Welcome!",
+      text: "Welcome to the show.",
       subSegments: [
         { id: "intro-1", start: 0, end: 5, text: "Welcome" },
         { id: "intro-2", start: 5, end: 15, text: "to the show." },

@@ -771,6 +771,9 @@ tracker.destroy();</code></pre>
           bufferStat.textContent = `${Math.round(percent)}%`;
         },
         onVolumeChange: (volume) => {
+          console.log(volume);
+          volumeFill.style.width = `${volume}%`;
+          volumeValue.textContent = Math.round(volume);
           volumeStat.textContent = Math.round(volume);
         },
         onLoadStart: () => (status.textContent = "Loading..."),
@@ -799,9 +802,6 @@ tracker.destroy();</code></pre>
           Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)
         );
         tracker.setVolume(percent);
-        volumeFill.style.width = `${percent}%`;
-        volumeValue.textContent = Math.round(percent);
-        volumeStat.textContent = Math.round(percent);
       };
 
       document.querySelectorAll(".speed-buttons button").forEach((btn) => {

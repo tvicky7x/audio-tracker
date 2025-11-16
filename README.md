@@ -335,8 +335,10 @@ const tracker = new AudioTracker("/podcast.mp3", {
     segments: [
       {
         id: "intro",
+        label: "intro"
         start: 0,
         end: 30,
+        order: 1,
         speaker: { id: "host", name: "Host Name" },
         text: "Introduction",
       },

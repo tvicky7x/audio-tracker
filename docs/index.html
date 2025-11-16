@@ -616,7 +616,7 @@
           >
             Copy
           </button>
-          <pre><code id="usage">import AudioTracker from 'audio-tracker';
+          <pre><code id="usage">import AudioTracker, { mediaSessionModule } from 'audio-tracker';
 
 // Initialize with options
 const tracker = new AudioTracker('audio.mp3', {
@@ -628,6 +628,9 @@ const tracker = new AudioTracker('audio.mp3', {
     artwork: [{ src: 'cover.jpg', sizes: '512x512' }]
   }
 });
+
+// Use Media Session module
+tracker.use(mediaSessionModule);
 
 // Setup callbacks
 tracker.init({
@@ -647,6 +650,7 @@ tracker.init({
 // Playback controls
 await tracker.play();
 tracker.pause();
+await tracker.togglePlay();      // Toggle play/pause
 tracker.seekTo(30);              // Jump to 30s
 tracker.forward(10);             // Skip forward 10s
 tracker.backward(10);            // Skip backward 10s

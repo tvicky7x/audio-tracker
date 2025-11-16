@@ -65,7 +65,7 @@ pnpm add audio-tracker
 ### CDN
 
 ```
-<script src="https://unpkg.com/audio-tracker@1.2.3/dist/index.js"></script>
+<script src="https://unpkg.com/audio-tracker@2.0.0/dist/index.js"></script>
 ```
 
 ---
@@ -335,7 +335,7 @@ const tracker = new AudioTracker("/podcast.mp3", {
     segments: [
       {
         id: "intro",
-        label: "intro"
+        label: "intro",
         start: 0,
         end: 30,
         order: 1,
